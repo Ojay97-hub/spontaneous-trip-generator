@@ -6,6 +6,7 @@ const COUNTRIES = [
 
 // Use environment variable for Unsplash API key (Vite style)
 const UNSPLASH_ACCESS_KEY = import.meta.env.VITE_REACT_APP_UNSPLASH_ACCESS_KEY;
+const GEONAMES_USERNAME = import.meta.env.VITE_GEONAMES_USERNAME;
 
 const fetchImageUrl = async (location) => {
   try {
@@ -22,8 +23,8 @@ const fetchImageUrl = async (location) => {
 
 // Add fetch functions for GeoNames and Wikipedia
 async function fetchGeoNamesDescription(location, country) {
-  // Example: Use GeoNames API (replace demo username!)
-  const url = `https://secure.geonames.org/searchJSON?q=${encodeURIComponent(location)}&country=${country}&maxRows=1&username=demo`;
+  // Use GeoNames API with env username
+  const url = `https://secure.geonames.org/searchJSON?q=${encodeURIComponent(location)}&country=${country}&maxRows=1&username=${GEONAMES_USERNAME}`;
   try {
     const res = await fetch(url);
     const data = await res.json();
@@ -69,32 +70,39 @@ function LocationImagePill({ location }) {
 function LocationDescriptionPill({ location, country }) {
   const [geoDesc, setGeoDesc] = useState('');
   const [wikiSummary, setWikiSummary] = useState('');
-  const [showWiki, setShowWiki] = useState(false);
+  const [wikiUrl, setWikiUrl] = useState('');
 
   useEffect(() => {
-    fetchGeoNamesDescription(location, country).then(desc => {
-      setGeoDesc(desc || 'No description available for this location.');
+    fetchWikipediaSummary(location).then(summary => {
+      if (summary) {
+        setWikiSummary(summary);
+        setWikiUrl(`https://en.wikipedia.org/wiki/${encodeURIComponent(location)}`);
+      } else {
+        fetchGeoNamesDescription(location, country).then(desc => {
+          setWikiSummary(desc || 'No description available for this location.');
+          setWikiUrl('');
+        });
+      }
     });
   }, [location, country]);
 
-  const handleSeeMore = async () => {
-    if (!wikiSummary) {
-      const summary = await fetchWikipediaSummary(location);
-      setWikiSummary(summary || 'No additional Wikipedia info found.');
-    }
-    setShowWiki((prev) => !prev);
-  };
+  // Helper: truncate to 50 words
+  function truncateWords(text, maxWords = 50) {
+    if (!text) return '';
+    const words = text.split(/\s+/);
+    if (words.length <= maxWords) return text;
+    return words.slice(0, maxWords).join(' ') + '...';
+  }
 
   return (
     <div className="location-desc-pill-inner">
       <h2 className="location-title-pill">{location}</h2>
-      <div className="geo-desc">{geoDesc}</div>
-      <button className="see-more-btn" onClick={handleSeeMore}>
-        See more info
-      </button>
-      {showWiki && (
-        <div className="wiki-summary">{wikiSummary}</div>
-      )}
+      <div className="geo-desc">{truncateWords(wikiSummary)}</div>
+      {wikiUrl ? (
+        <a className="see-more-btn" href={wikiUrl} target="_blank" rel="noopener noreferrer">
+          See more info
+        </a>
+      ) : null}
     </div>
   );
 }
