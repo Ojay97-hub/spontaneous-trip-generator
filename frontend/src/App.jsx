@@ -1,9 +1,8 @@
 import { useState } from 'react'
-import './App.css'
+import './index.css'
 
 const COUNTRIES = [
   { code: 'CA', name: 'Canada' },
-  // Future: add more countries
 ];
 
 function App() {
@@ -11,11 +10,13 @@ function App() {
   const [destination, setDestination] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   const fetchDestination = async () => {
     setLoading(true);
     setError(null);
     setDestination(null);
+    setMapLoaded(false);
     try {
       const res = await fetch('http://localhost:8000/api/random-destination/');
       if (!res.ok) throw new Error('Failed to fetch');
@@ -29,34 +30,64 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-200 flex flex-col items-center justify-center p-4">
-      <h1 className="text-4xl font-bold mb-6 text-blue-900 drop-shadow">Spontaneous Trip Generator</h1>
-      <div className="flex flex-col sm:flex-row gap-4 items-center mb-8">
-        <label className="font-medium text-blue-800">Country:</label>
-        <select
-          className="rounded border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          value={country}
-          onChange={e => setCountry(e.target.value)}
-        >
-          {COUNTRIES.map(c => (
-            <option key={c.code} value={c.code}>{c.name}</option>
-          ))}
-        </select>
-        <button
-          className="bg-blue-600 text-white px-6 py-2 rounded shadow hover:bg-blue-700 transition disabled:opacity-50"
-          onClick={fetchDestination}
-          disabled={loading}
-        >
-          {loading ? 'Surprising...' : 'Surprise Me!'}
-        </button>
-      </div>
-      {error && <div className="text-red-600 mb-4">{error}</div>}
-      {destination && (
-        <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full text-center animate-fade-in">
-          <h2 className="text-2xl font-semibold text-blue-800 mb-2">{destination.city}</h2>
-          <p className="text-gray-700">{destination.description}</p>
+    <div>
+      {/* Website Title */}
+      <header className="site-title-header">
+        <span className="site-title-icon" role="img" aria-label="airplane">✈️</span>
+        <h1 className="site-title">Spontaneous Trip Generator</h1>
+      </header>
+      {/* Hero Card for Country */}
+      <section className="hero-card hero-card--with-image">
+        <img
+          className="hero-bg-img"
+          src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80"
+          alt="Canada landscape"
+        />
+        <div className="hero-content">
+          <h2 className="hero-country">{COUNTRIES.find(c => c.code === country)?.name || country}</h2>
+          <p className="hero-subtitle">Find your next {COUNTRIES.find(c => c.code === country)?.name || country} adventure in one click.</p>
+          <button className="generate-btn" onClick={fetchDestination} disabled={loading}>
+            {loading ? 'Loading...' : 'Surprise Me!'}
+          </button>
         </div>
-      )}
+      </section>
+      {/* Spontaneous Locations */}
+      <main className="locations-list">
+        {error && <p className="text-red-600 mb-4">{error}</p>}
+        {destination && (
+          <div className="location-card-with-map">
+            <div className="location-card">
+              <img
+                className="location-img"
+                src={destination.image_url || "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80"}
+                alt={destination.city + ' landscape'}
+              />
+              <h3 className="location-title"><span role="img" aria-label="city">🏙️</span> {destination.city}</h3>
+              <p className="location-desc">{destination.description}</p>
+            </div>
+            <div className="location-map">
+              {!mapLoaded && (
+                <div className="map-skeleton">
+                  <div className="spinner" />
+                </div>
+              )}
+              <iframe
+                title={`Map of ${destination.city}`}
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                style={{ opacity: mapLoaded ? 1 : 0, transition: 'opacity 0.6s', borderRadius: '1rem' }}
+                src={`https://www.google.com/maps?q=${encodeURIComponent(destination.city + ', ' + (COUNTRIES.find(c => c.code === country)?.name || country))}&output=embed`}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                onLoad={() => setMapLoaded(true)}
+              />
+            </div>
+          </div>
+        )}
+      </main>
+      <footer>&copy; {new Date().getFullYear()} Spontaneous Trip Generator</footer>
     </div>
   );
 }
