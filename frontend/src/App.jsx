@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import './index.css'
 
 const COUNTRIES = [
   { code: 'CA', name: 'Canada' },
@@ -21,7 +20,7 @@ const fetchImageUrl = async (location) => {
   }
 };
 
-function LocationCard({ location, description }) {
+function LocationImagePill({ location }) {
   const [imageUrl, setImageUrl] = useState(null);
 
   useEffect(() => {
@@ -29,22 +28,40 @@ function LocationCard({ location, description }) {
   }, [location]);
 
   return (
-    <div className="location-card-horizontal">
-      <div className="location-img-horizontal">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={location}
-            className="location-img-side"
-          />
-        ) : (
-          <div className="location-img-side location-img-loading">Loading image...</div>
-        )}
-      </div>
-      <div className="location-info-horizontal">
-        <h2 className="location-title-horizontal">{location}</h2>
-        <p className="location-desc-horizontal">{description}</p>
-      </div>
+    <div className="pill location-image-pill">
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={location}
+          className="location-img-pill"
+        />
+      ) : (
+        <div className="location-img-pill location-img-loading">Loading image...</div>
+      )}
+    </div>
+  );
+}
+
+function LocationDescriptionPill({ location, onSeeMore }) {
+  return (
+    <div className="pill location-desc-pill">
+      <h2 className="location-title-pill">{location}</h2>
+      <button className="see-more-btn" onClick={onSeeMore}>See more info</button>
+    </div>
+  );
+}
+
+function LocationMapPill({ location, country, setMapLoaded }) {
+  return (
+    <div className="pill location-map-pill">
+      <iframe
+        title={location + ' map'}
+        src={`https://www.google.com/maps?q=${encodeURIComponent(location + ', ' + country)}&output=embed`}
+        allowFullScreen=""
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+        onLoad={() => setMapLoaded(true)}
+      />
     </div>
   );
 }
@@ -96,25 +113,18 @@ function App() {
         </div>
       </section>
       {/* Spontaneous Locations */}
-      <main className="locations-list">
+      <main className="locations-list pills-layout">
         {error && <p className="text-red-600 mb-4">{error}</p>}
         {destination && (
-          <div className="location-card-with-map">
-            <LocationCard location={destination.city} description={destination.description} />
-            <div className="location-map">
-              {!mapLoaded && (
-                <div className="map-skeleton">
-                  <div className="spinner" />
-                </div>
-              )}
-              <iframe
-                title={destination.city + ' map'}
-                src={`https://www.google.com/maps?q=${encodeURIComponent(destination.city + ', ' + (COUNTRIES.find(c => c.code === country)?.name || country))}&output=embed`}
-                allowFullScreen=""
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                onLoad={() => setMapLoaded(true)}
-              />
+          <div className="locations-row">
+            <div className="location-card-modern">
+              <div className="location-card-modern-image-desc">
+                <LocationImagePill location={destination.city} />
+                <LocationDescriptionPill location={destination.city} onSeeMore={() => window.open(`https://en.wikipedia.org/wiki/${encodeURIComponent(destination.city)}`, '_blank')} />
+              </div>
+            </div>
+            <div className="location-card-modern location-card-modern-map">
+              <LocationMapPill location={destination.city} country={COUNTRIES.find(c => c.code === country)?.name || country} setMapLoaded={setMapLoaded} />
             </div>
           </div>
         )}
