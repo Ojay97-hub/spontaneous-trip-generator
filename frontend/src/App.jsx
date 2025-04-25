@@ -20,6 +20,30 @@ const fetchImageUrl = async (location) => {
   }
 };
 
+// Add fetch functions for GeoNames and Wikipedia
+async function fetchGeoNamesDescription(location, country) {
+  // Example: Use GeoNames API (replace demo username!)
+  const url = `https://secure.geonames.org/searchJSON?q=${encodeURIComponent(location)}&country=${country}&maxRows=1&username=demo`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    return data.geonames?.[0]?.summary || data.geonames?.[0]?.fcodeName || '';
+  } catch {
+    return '';
+  }
+}
+
+async function fetchWikipediaSummary(location) {
+  const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(location)}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    return data.extract || '';
+  } catch {
+    return '';
+  }
+}
+
 function LocationImagePill({ location }) {
   const [imageUrl, setImageUrl] = useState(null);
 
@@ -28,7 +52,7 @@ function LocationImagePill({ location }) {
   }, [location]);
 
   return (
-    <div className="pill location-image-pill">
+    <div className="location-image-pill-outer">
       {imageUrl ? (
         <img
           src={imageUrl}
@@ -42,27 +66,51 @@ function LocationImagePill({ location }) {
   );
 }
 
-function LocationDescriptionPill({ location, onSeeMore }) {
+function LocationDescriptionPill({ location, country }) {
+  const [geoDesc, setGeoDesc] = useState('');
+  const [wikiSummary, setWikiSummary] = useState('');
+  const [showWiki, setShowWiki] = useState(false);
+
+  useEffect(() => {
+    fetchGeoNamesDescription(location, country).then(desc => {
+      setGeoDesc(desc || 'No description available for this location.');
+    });
+  }, [location, country]);
+
+  const handleSeeMore = async () => {
+    if (!wikiSummary) {
+      const summary = await fetchWikipediaSummary(location);
+      setWikiSummary(summary || 'No additional Wikipedia info found.');
+    }
+    setShowWiki((prev) => !prev);
+  };
+
   return (
-    <div className="pill location-desc-pill">
+    <div className="location-desc-pill-inner">
       <h2 className="location-title-pill">{location}</h2>
-      <button className="see-more-btn" onClick={onSeeMore}>See more info</button>
+      <div className="geo-desc">{geoDesc}</div>
+      <button className="see-more-btn" onClick={handleSeeMore}>
+        See more info
+      </button>
+      {showWiki && (
+        <div className="wiki-summary">{wikiSummary}</div>
+      )}
     </div>
   );
 }
 
 function LocationMapPill({ location, country, setMapLoaded }) {
   return (
-    <div className="pill location-map-pill">
-      <iframe
-        title={location + ' map'}
-        src={`https://www.google.com/maps?q=${encodeURIComponent(location + ', ' + country)}&output=embed`}
-        allowFullScreen=""
-        loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
-        onLoad={() => setMapLoaded(true)}
-      />
-    </div>
+    <iframe
+      title={location + ' map'}
+      src={`https://www.google.com/maps?q=${encodeURIComponent(location + ', ' + country)}&output=embed`}
+      allowFullScreen=""
+      loading="lazy"
+      referrerPolicy="no-referrer-when-downgrade"
+      onLoad={() => setMapLoaded(true)}
+      className="map-iframe-landscape"
+      style={{ width: '100%', height: '100%', display: 'block', border: 0, borderRadius: '18px' }}
+    />
   );
 }
 
@@ -120,7 +168,7 @@ function App() {
             <div className="location-card-modern">
               <div className="location-card-modern-image-desc">
                 <LocationImagePill location={destination.city} />
-                <LocationDescriptionPill location={destination.city} onSeeMore={() => window.open(`https://en.wikipedia.org/wiki/${encodeURIComponent(destination.city)}`, '_blank')} />
+                <LocationDescriptionPill location={destination.city} country={country} />
               </div>
             </div>
             <div className="location-card-modern location-card-modern-map">
