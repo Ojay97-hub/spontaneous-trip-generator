@@ -1,9 +1,53 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './index.css'
 
 const COUNTRIES = [
   { code: 'CA', name: 'Canada' },
 ];
+
+// Use environment variable for Unsplash API key (Vite style)
+const UNSPLASH_ACCESS_KEY = import.meta.env.VITE_REACT_APP_UNSPLASH_ACCESS_KEY;
+
+const fetchImageUrl = async (location) => {
+  try {
+    const response = await fetch(
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(location)}&client_id=${UNSPLASH_ACCESS_KEY}`
+    );
+    const data = await response.json();
+    return data.results[0]?.urls?.regular || null;
+  } catch (error) {
+    console.error("Failed to fetch image from Unsplash:", error);
+    return null;
+  }
+};
+
+function LocationCard({ location, description }) {
+  const [imageUrl, setImageUrl] = useState(null);
+
+  useEffect(() => {
+    fetchImageUrl(location).then(setImageUrl);
+  }, [location]);
+
+  return (
+    <div className="location-card-horizontal">
+      <div className="location-img-horizontal">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={location}
+            className="location-img-side"
+          />
+        ) : (
+          <div className="location-img-side location-img-loading">Loading image...</div>
+        )}
+      </div>
+      <div className="location-info-horizontal">
+        <h2 className="location-title-horizontal">{location}</h2>
+        <p className="location-desc-horizontal">{description}</p>
+      </div>
+    </div>
+  );
+}
 
 function App() {
   const [country, setCountry] = useState('CA');
@@ -56,15 +100,7 @@ function App() {
         {error && <p className="text-red-600 mb-4">{error}</p>}
         {destination && (
           <div className="location-card-with-map">
-            <div className="location-card">
-              <img
-                className="location-img"
-                src={destination.image_url || "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80"}
-                alt={destination.city + ' landscape'}
-              />
-              <h3 className="location-title"><span role="img" aria-label="city">🏙️</span> {destination.city}</h3>
-              <p className="location-desc">{destination.description}</p>
-            </div>
+            <LocationCard location={destination.city} description={destination.description} />
             <div className="location-map">
               {!mapLoaded && (
                 <div className="map-skeleton">
@@ -72,11 +108,7 @@ function App() {
                 </div>
               )}
               <iframe
-                title={`Map of ${destination.city}`}
-                width="100%"
-                height="100%"
-                frameBorder="0"
-                style={{ opacity: mapLoaded ? 1 : 0, transition: 'opacity 0.6s', borderRadius: '1rem' }}
+                title={destination.city + ' map'}
                 src={`https://www.google.com/maps?q=${encodeURIComponent(destination.city + ', ' + (COUNTRIES.find(c => c.code === country)?.name || country))}&output=embed`}
                 allowFullScreen=""
                 loading="lazy"
