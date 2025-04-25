@@ -11,6 +11,49 @@ A simple full-stack web app to inspire spontaneous travel! Click a button to get
 
 ---
 
+## Agile User Story
+
+**As a** spontaneous traveler,
+**I want** to click a button and instantly receive a random Canadian city with a brief description,
+**so that** I can discover new travel destinations without having to plan in advance.
+
+---
+
+## Iterations (Agile Sprints)
+
+**Iteration 1: MVP Delivery**
+- Set up backend with Django REST API to serve random Canadian destinations (hardcoded list)
+- Create frontend with React + Vite + Tailwind CSS
+- Implement UI: button to get a destination, display city name and description
+- Connect frontend to backend API
+- Basic error handling and loading states
+
+**Iteration 2: Enhancements**
+- Add images for destinations
+- Allow user to filter by province/region
+- Improve UI/UX with animations and responsive design
+- Add more destinations to the backend
+
+**Iteration 3: Expansion**
+- Add support for more countries/regions
+- Allow users to save favorite destinations (requires backend/db changes)
+- Prepare for deployment (hosting, environment variables, etc.)
+
+---
+
+## MVP (Minimum Viable Product)
+
+The MVP includes:
+- A working frontend where users can click a button to receive a random Canadian city and its description
+- A Django backend that returns a random destination from a hardcoded list (no database required)
+- Simple, clean UI using React and Tailwind CSS
+- No authentication, user accounts, or persistent storage
+- Basic error handling for failed API requests
+
+This MVP allows users to immediately experience the core value—discovering spontaneous travel ideas—while keeping the implementation simple and focused. Future iterations can expand on features and destinations as needed.
+
+---
+
 ## Quickstart
 
 ### Backend (Django)
