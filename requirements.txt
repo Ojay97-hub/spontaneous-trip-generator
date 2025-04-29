@@ -2,6 +2,9 @@ asgiref==3.8.1
 Django==4.2.20
 django-cors-headers==4.7.0
 djangorestframework==3.16.0
+django-allauth
+cryptography
+PyJWT
 python-dotenv
 requests
 sqlparse==0.5.3

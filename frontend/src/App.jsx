@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { marked } from 'marked';
+import AccountDropdown from "./AccountDropdown";
 
 const COUNTRIES = [
   { code: 'CA', name: 'Canada' },
@@ -145,6 +146,13 @@ function App() {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [heroImgUrl, setHeroImgUrl] = useState('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80');
   const [heroImgLoading, setHeroImgLoading] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    fetch("http://localhost:8000/api/me/", { credentials: "include" })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => setUser(data && data.username ? data : null));
+  }, []);
 
   // Fetch hero image when country changes
   useEffect(() => {
@@ -177,6 +185,68 @@ function App() {
 
   return (
     <div>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 24 }}>
+        <AccountDropdown user={user} />
+      </div>
+      {!user ? (
+        <div style={{
+          background: "linear-gradient(135deg, #f3f4f6 60%, #fca31122 100%)",
+          padding: 32,
+          borderRadius: 18,
+          maxWidth: 460,
+          margin: "40px auto",
+          boxShadow: "0 8px 32px #2563eb22",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 18,
+          position: "relative"
+        }}>
+          <div style={{
+            background: "#fff",
+            borderRadius: "50%",
+            width: 62,
+            height: 62,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 2px 8px #fca31122",
+            marginBottom: 18,
+            fontSize: 32
+          }}>
+            <span role="img" aria-label="bookmark">📍</span>
+          </div>
+          <h2 style={{ color: "#4f46e5", marginBottom: 10, fontWeight: 800, fontSize: 24, textAlign: "center" }}>
+            Sign up to save your favorite spontaneous locations!
+          </h2>
+          <p style={{ color: "#444", marginBottom: 18, textAlign: "center", fontSize: 17 }}>
+            Create an account to bookmark and revisit your best adventures.
+          </p>
+          <a href="http://localhost:8000/accounts/signup/" style={{
+            background: "linear-gradient(90deg, #fca311 0%, #fbbf24 100%)",
+            color: "#14213d",
+            fontWeight: 700,
+            fontSize: 18,
+            padding: "0.8rem 2.4rem",
+            borderRadius: 12,
+            textDecoration: "none",
+            boxShadow: "0 2px 12px #fca31133",
+            marginTop: 10,
+            transition: "background 0.18s, transform 0.12s"
+          }}
+          onMouseOver={e => e.currentTarget.style.background = "linear-gradient(90deg, #fbbf24 0%, #fca311 100%)"}
+          onMouseOut={e => e.currentTarget.style.background = "linear-gradient(90deg, #fca311 0%, #fbbf24 100%)"}
+          >
+            Sign Up
+          </a>
+        </div>
+      ) : (
+        <div style={{ background: "#e0f7fa", padding: 24, borderRadius: 10, maxWidth: 420, margin: "40px auto", boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+          <h2 style={{ color: "#00796b", marginBottom: 12 }}>Welcome, {user.username}!</h2>
+          <p style={{ color: "#444" }}>Here are your saved spontaneous locations:</p>
+          {/* TODO: Render user's saved locations here */}
+        </div>
+      )}
       {/* Website Title */}
       <header className="site-title-header">
         <span className="site-title-icon" role="img" aria-label="airplane">✈️</span>

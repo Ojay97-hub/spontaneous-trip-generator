@@ -1,13 +1,16 @@
 # Spontaneous Trip Generator
 
-A simple full-stack web app to inspire spontaneous travel! Click a button to get a random Canadian city and a short description.
+A simple full-stack web app to inspire spontaneous travel! Click a button to get a random destination for the selected country and a short description.
 
 ---
 
 ## Features
 - **React + Vite + Tailwind CSS** frontend
 - **Django REST API** backend (no database required for MVP)
-- Fetches a random Canadian destination on demand
+- Fetches a random destination for the selected country
+- **Dynamic hero images**: The hero section updates with a beautiful Unsplash photo relevant to the selected country
+- **Country flag overlay**: The hero section displays the selected country's flag
+- **Multi-country support**: Choose from a list of countries to generate spontaneous trips worldwide
 - **AI-powered descriptions**: Uses Claude AI to generate engaging city descriptions and provide clickable links to top tourist attractions
 
 ---
@@ -27,13 +30,15 @@ This app uses [Claude AI](https://www.anthropic.com/products/claude) to generate
 - Users see a preview of the AI description and can expand to read the full text
 - Attraction links are always clickable and open in a new tab
 - An "🤖 Powered by Claude AI" badge is shown on every description
+- The hero image and flag update instantly when you select a new country
+- Responsive and visually polished UI, with robust fallback for images
 
 ---
 
 ## Agile User Story
 
 **As a** spontaneous traveler,
-**I want** to click a button and instantly receive a random Canadian city with a brief description,
+**I want** to click a button and instantly receive a random destination for the selected country with a brief description,
 **so that** I can discover new travel destinations without having to plan in advance.
 
 ---
@@ -41,19 +46,21 @@ This app uses [Claude AI](https://www.anthropic.com/products/claude) to generate
 ## Iterations (Agile Sprints)
 
 **Iteration 1: MVP Delivery**
-- Set up backend with Django REST API to serve random Canadian destinations (hardcoded list)
+- Set up backend with Django REST API to serve random destinations (hardcoded list)
 - Create frontend with React + Vite + Tailwind CSS
 - Implement UI: button to get a destination, display city name and description
 - Connect frontend to backend API
 - Basic error handling and loading states
 
 **Iteration 2: Enhancements**
-- Add images for destinations
+- Dynamic hero image and country flag in hero section
+- Support for multiple countries (not just Canada)
 - Allow user to filter by province/region
 - Improve UI/UX with animations and responsive design
 - Add more destinations to the backend
 
 **Iteration 3: Expansion**
+- Dynamic country-based hero images and flags
 - Add support for more countries/regions
 - Allow users to save favorite destinations (requires backend/db changes)
 - Prepare for deployment (hosting, environment variables, etc.)
@@ -63,7 +70,7 @@ This app uses [Claude AI](https://www.anthropic.com/products/claude) to generate
 ## MVP (Minimum Viable Product)
 
 The MVP includes:
-- A working frontend where users can click a button to receive a random Canadian city and its description
+- A working frontend where users can click a button to receive a random destination for the selected country and its description
 - A Django backend that returns a random destination from a hardcoded list (no database required)
 - Simple, clean UI using React and Tailwind CSS
 - No authentication, user accounts, or persistent storage

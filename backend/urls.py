@@ -16,8 +16,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import HttpResponse
+from backend.api.views import current_user
+
+def index(request):
+    return HttpResponse("<h1>Welcome to Spontaneous Trip Generator</h1><p><a href='/accounts/login/'>Login</a></p>")
 
 urlpatterns = [
+    path('', index),
     path('admin/', admin.site.urls),
+    path('api/me/', current_user),
     path('api/', include('trips.urls')),
+    path('accounts/', include('allauth.urls')),
 ]
