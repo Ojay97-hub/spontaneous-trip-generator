@@ -39,6 +39,12 @@ function splitDescriptionAndLinks(md) {
   return { desc: md, links: '' };
 }
 
+// Helper to get flag URL by country code
+function getFlagUrl(code) {
+  // Use lowercase for flagcdn
+  return `https://flagcdn.com/${code.toLowerCase()}.svg`;
+}
+
 const fetchImageUrl = async (location) => {
   try {
     const response = await fetch(
@@ -137,6 +143,20 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [heroImgUrl, setHeroImgUrl] = useState('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80');
+  const [heroImgLoading, setHeroImgLoading] = useState(false);
+
+  // Fetch hero image when country changes
+  useEffect(() => {
+    const countryObj = COUNTRIES.find(c => c.code === country);
+    if (!countryObj) return;
+    setHeroImgLoading(true);
+    fetchImageUrl(countryObj.name)
+      .then(url => {
+        setHeroImgUrl(url || 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80');
+      })
+      .finally(() => setHeroImgLoading(false));
+  }, [country]);
 
   const fetchDestination = async () => {
     setLoading(true);
@@ -181,10 +201,33 @@ function App() {
       </section>
       {/* Hero Card for Country */}
       <section className="hero-card hero-card--with-image">
+        {heroImgLoading ? (
+          <div className="hero-bg-img hero-bg-img-loading">Loading image...</div>
+        ) : (
+          <img
+            className="hero-bg-img"
+            src={heroImgUrl}
+            alt={COUNTRIES.find(c => c.code === country)?.name + ' landscape'}
+          />
+        )}
+        {/* Country Flag */}
         <img
-          className="hero-bg-img"
-          src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80"
-          alt={COUNTRIES.find(c => c.code === country)?.name + ' landscape'}
+          className="hero-flag-img"
+          src={getFlagUrl(country)}
+          alt={COUNTRIES.find(c => c.code === country)?.name + ' flag'}
+          style={{
+            position: 'absolute',
+            top: 32,
+            left: 32,
+            width: 48,
+            height: 32,
+            borderRadius: 6,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            background: '#fff',
+            objectFit: 'cover',
+            border: '1.5px solid #fff',
+            zIndex: 2
+          }}
         />
         <div className="hero-content">
           <h2 className="hero-country">{COUNTRIES.find(c => c.code === country)?.name || country}</h2>
