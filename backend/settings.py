@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-hf^ibxcb&qu&6u@++m-=@=m4-liqkuef_4r#4*b(q&bsdcm55i
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -38,15 +38,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
     'corsheaders',
-    'trips',
-    # allauth apps
-    'django.contrib.sites',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    # add other providers as needed
+    'trips',
+    # allauth apps
+    'django.contrib.sites',
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -71,7 +73,7 @@ ROOT_URLCONF = 'backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "backend" / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -141,13 +143,26 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 SITE_ID = 1
 
-LOGIN_REDIRECT_URL = '/'
-ACCOUNT_LOGOUT_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = "http://localhost:5173/social-callback/"
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 
 # DEPRECATED: ACCOUNT_AUTHENTICATION_METHOD and ACCOUNT_EMAIL_REQUIRED
 # Updated to new settings per deprecation warnings
 ACCOUNT_LOGIN_METHODS = {'username', 'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
-ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_EMAIL_REQUIRED = True
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@spontaneoustrip.com'
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'TEMPLATES': {
+            'login': 'account/login_with_google.html',
+            'signup': 'account/3rdparty_signup.html',
+        }
+    }
+}
 
 CORS_ALLOW_ALL_ORIGINS = True

@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "EUSAGE",
+    "summary": "\nManages your package.json\n\nUsage:\nnpm pkg set <key>=<value> [<key>=<value> ...]\nnpm pkg get [<key> [<key> ...]]\nnpm pkg delete <key> [<key> ...]\nnpm pkg set [<array>[<index>].<key>=<value> ...]\nnpm pkg set [<array>[].<key>=<value> ...]\nnpm pkg fix\n\nOptions:\n[-f|--force] [--json]\n[-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]\n[-ws|--workspaces]\n\nRun \"npm help pkg\" for more info",
+    "detail": ""
+  }
+}

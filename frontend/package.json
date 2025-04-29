@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-oauth/google": "^0.12.1",
+    "@tailwindcss/postcss": "^4.1.4",
     "marked": "^15.0.11",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

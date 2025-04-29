@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react'
 import { marked } from 'marked';
+import Navbar from "./Navbar";
 import AccountDropdown from "./AccountDropdown";
+import GoogleLoginButton from './GoogleLoginButton';
+import { Link, BrowserRouter, Routes, Route } from "react-router-dom";
+import Signup from "./Signup";
 
 const COUNTRIES = [
   { code: 'CA', name: 'Canada' },
@@ -149,10 +153,17 @@ function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/me/", { credentials: "include" })
-      .then(res => res.ok ? res.json() : null)
-      .then(data => setUser(data && data.username ? data : null));
-  }, []);
+    fetch("http://localhost:8000/api/me/", { 
+      credentials: "include",
+      headers: {
+        'Authorization': user && user.token ? `Token ${user.token}` : undefined
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.username) setUser(u => ({...u, ...data}));
+      });
+  }, [user && user.token]);
 
   // Fetch hero image when country changes
   useEffect(() => {
@@ -172,7 +183,11 @@ function App() {
     setDestination(null);
     setMapLoaded(false);
     try {
-      const res = await fetch(`http://localhost:8000/api/random-destination/?country=${country}`);
+      const res = await fetch(`http://localhost:8000/api/random-destination/?country=${country}`, {
+        headers: {
+          'Authorization': user && user.token ? `Token ${user.token}` : undefined
+        }
+      });
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       setDestination(data);
@@ -183,146 +198,176 @@ function App() {
     }
   };
 
+  // Handler for Google login success
+  const handleGoogleLogin = (googleToken) => {
+    fetch('http://localhost:8000/auth/social/login/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        access_token: googleToken,
+        provider: 'google'
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.key) {
+          setUser({ token: data.key });
+          localStorage.setItem('authToken', data.key);
+          // Optionally redirect to dashboard or show success
+        } else {
+          alert('Google login failed.');
+        }
+      });
+  };
+
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 24 }}>
-        <AccountDropdown user={user} />
-      </div>
-      {!user ? (
-        <div style={{
-          background: "linear-gradient(135deg, #f3f4f6 60%, #fca31122 100%)",
-          padding: 32,
-          borderRadius: 18,
-          maxWidth: 460,
-          margin: "40px auto",
-          boxShadow: "0 8px 32px #2563eb22",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 18,
-          position: "relative"
-        }}>
-          <div style={{
-            background: "#fff",
-            borderRadius: "50%",
-            width: 62,
-            height: 62,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 2px 8px #fca31122",
-            marginBottom: 18,
-            fontSize: 32
-          }}>
-            <span role="img" aria-label="bookmark">📍</span>
-          </div>
-          <h2 style={{ color: "#4f46e5", marginBottom: 10, fontWeight: 800, fontSize: 24, textAlign: "center" }}>
-            Sign up to save your favorite spontaneous locations!
-          </h2>
-          <p style={{ color: "#444", marginBottom: 18, textAlign: "center", fontSize: 17 }}>
-            Create an account to bookmark and revisit your best adventures.
-          </p>
-          <a href="http://localhost:8000/accounts/signup/" style={{
-            background: "linear-gradient(90deg, #fca311 0%, #fbbf24 100%)",
-            color: "#14213d",
-            fontWeight: 700,
-            fontSize: 18,
-            padding: "0.8rem 2.4rem",
-            borderRadius: 12,
-            textDecoration: "none",
-            boxShadow: "0 2px 12px #fca31133",
-            marginTop: 10,
-            transition: "background 0.18s, transform 0.12s"
-          }}
-          onMouseOver={e => e.currentTarget.style.background = "linear-gradient(90deg, #fbbf24 0%, #fca311 100%)"}
-          onMouseOut={e => e.currentTarget.style.background = "linear-gradient(90deg, #fca311 0%, #fbbf24 100%)"}
-          >
-            Sign Up
-          </a>
-        </div>
-      ) : (
-        <div style={{ background: "#e0f7fa", padding: 24, borderRadius: 10, maxWidth: 420, margin: "40px auto", boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
-          <h2 style={{ color: "#00796b", marginBottom: 12 }}>Welcome, {user.username}!</h2>
-          <p style={{ color: "#444" }}>Here are your saved spontaneous locations:</p>
-          {/* TODO: Render user's saved locations here */}
-        </div>
-      )}
-      {/* Website Title */}
-      <header className="site-title-header">
-        <span className="site-title-icon" role="img" aria-label="airplane">✈️</span>
-        <h1 className="site-title">Spontaneous Trip Generator</h1>
-      </header>
-      {/* Controls for Country Selection */}
-      <section className="controls">
-        <label htmlFor="country-select">Choose a country:</label>
-        <select
-          id="country-select"
-          value={country}
-          onChange={e => setCountry(e.target.value)}
-          disabled={loading}
-        >
-          {COUNTRIES.map(c => (
-            <option key={c.code} value={c.code}>{c.name}</option>
-          ))}
-        </select>
-        <button className="generate-btn" onClick={fetchDestination} disabled={loading}>
-          {loading ? 'Loading...' : 'Surprise Me!'}
-        </button>
-      </section>
-      {/* Hero Card for Country */}
-      <section className="hero-card hero-card--with-image">
-        {heroImgLoading ? (
-          <div className="hero-bg-img hero-bg-img-loading">Loading image...</div>
-        ) : (
-          <img
-            className="hero-bg-img"
-            src={heroImgUrl}
-            alt={COUNTRIES.find(c => c.code === country)?.name + ' landscape'}
-          />
-        )}
-        {/* Country Flag */}
-        <img
-          className="hero-flag-img"
-          src={getFlagUrl(country)}
-          alt={COUNTRIES.find(c => c.code === country)?.name + ' flag'}
-          style={{
-            position: 'absolute',
-            top: 32,
-            left: 32,
-            width: 48,
-            height: 32,
-            borderRadius: 6,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-            background: '#fff',
-            objectFit: 'cover',
-            border: '1.5px solid #fff',
-            zIndex: 2
-          }}
-        />
-        <div className="hero-content">
-          <h2 className="hero-country">{COUNTRIES.find(c => c.code === country)?.name || country}</h2>
-          <p className="hero-subtitle">Find your next {COUNTRIES.find(c => c.code === country)?.name || country} adventure in one click.</p>
-        </div>
-      </section>
-      {/* Spontaneous Locations */}
-      <main className="locations-list pills-layout">
-        {error && <p className="text-red-600 mb-4">{error}</p>}
-        {destination && (
-          <div className="locations-row">
-            <div className="location-card-modern">
-              <div className="location-card-modern-image-desc">
-                <LocationImagePill location={destination.city} />
-                <LocationDescriptionPill location={destination.city} description={destination.description} />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={
+          <div>
+            <Navbar user={user} />
+            {/* Conditional CTA below navbar */}
+            {!user ? (
+              <div style={{
+                background: "#fff",
+                padding: 28,
+                borderRadius: 16,
+                maxWidth: 540,
+                margin: "32px auto 32px auto",
+                boxShadow: "0 2px 18px #2563eb18",
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 28,
+                position: "relative"
+              }}>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                  <div style={{
+                    background: "#f3f4f6",
+                    borderRadius: "50%",
+                    width: 38,
+                    height: 38,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 1px 2px #fca31111",
+                    marginBottom: 12,
+                    fontSize: 22
+                  }}>
+                    <span role="img" aria-label="bookmark">📍</span>
+                  </div>
+                  <h2 style={{ color: "#4f46e5", marginBottom: 10, fontWeight: 700, fontSize: 20, textAlign: "center" }}>
+                    Sign up to save your favorite spontaneous locations!
+                  </h2>
+                  <p style={{ color: "#444", marginBottom: 12, fontSize: 15, textAlign: "center" }}>
+                    Create an account to bookmark and revisit your best adventures.
+                  </p>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, minWidth: 170 }}>
+                  <Link
+                    to="/signup"
+                    style={{
+                      background: "linear-gradient(90deg, #fca311 0%, #fbbf24 100%)",
+                      color: "#fff",
+                      fontWeight: 600,
+                      fontSize: 16,
+                      padding: "0.5rem 1.5rem",
+                      borderRadius: 8,
+                      textDecoration: "none",
+                      boxShadow: "0 1px 3px #fca31122",
+                      marginTop: 2,
+                      transition: "background 0.18s, transform 0.12s",
+                      marginBottom: 0
+                    }}
+                  >
+                    Sign Up
+                  </Link>
+                  <span style={{ color: "#888", fontSize: 15, margin: "4px 0" }}>or</span>
+                  <GoogleLoginButton onLoginSuccess={handleGoogleLogin} />
+                </div>
               </div>
-            </div>
-            <div className="location-card-modern location-card-modern-map">
-              <LocationMapPill location={destination.city} country={COUNTRIES.find(c => c.code === country)?.name || country} setMapLoaded={setMapLoaded} />
-            </div>
+            ) : (
+              <div style={{ background: "#e0f7fa", padding: 24, borderRadius: 10, maxWidth: 420, margin: "40px auto", boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+                <h2 style={{ color: "#00796b", marginBottom: 12 }}>Welcome, {user.username}!</h2>
+                <p style={{ color: "#444" }}>Here are your saved spontaneous locations:</p>
+                {/* TODO: Render user's saved locations here */}
+              </div>
+            )}
+            {/* Controls for Country Selection */}
+            <section className="controls">
+              <label htmlFor="country-select">Choose a country:</label>
+              <select
+                id="country-select"
+                value={country}
+                onChange={e => setCountry(e.target.value)}
+                disabled={loading}
+              >
+                {COUNTRIES.map(c => (
+                  <option key={c.code} value={c.code}>{c.name}</option>
+                ))}
+              </select>
+              <button className="generate-btn" onClick={fetchDestination} disabled={loading}>
+                {loading ? 'Loading...' : 'Surprise Me!'}
+              </button>
+            </section>
+            {/* Hero Card for Country */}
+            <section className="hero-card hero-card--with-image">
+              {heroImgLoading ? (
+                <div className="hero-bg-img hero-bg-img-loading">Loading image...</div>
+              ) : (
+                <img
+                  className="hero-bg-img"
+                  src={heroImgUrl}
+                  alt={COUNTRIES.find(c => c.code === country)?.name + ' landscape'}
+                />
+              )}
+              {/* Country Flag */}
+              <img
+                className="hero-flag-img"
+                src={getFlagUrl(country)}
+                alt={COUNTRIES.find(c => c.code === country)?.name + ' flag'}
+                style={{
+                  position: 'absolute',
+                  top: 32,
+                  left: 32,
+                  width: 48,
+                  height: 32,
+                  borderRadius: 6,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                  background: '#fff',
+                  objectFit: 'cover',
+                  border: '1.5px solid #fff',
+                  zIndex: 2
+                }}
+              />
+              <div className="hero-content">
+                <h2 className="hero-country">{COUNTRIES.find(c => c.code === country)?.name || country}</h2>
+                <p className="hero-subtitle">Find your next {COUNTRIES.find(c => c.code === country)?.name || country} adventure in one click.</p>
+              </div>
+            </section>
+            {/* Spontaneous Locations */}
+            <main className="locations-list pills-layout">
+              {error && <p className="text-red-600 mb-4">{error}</p>}
+              {destination && (
+                <div className="locations-row">
+                  <div className="location-card-modern">
+                    <div className="location-card-modern-image-desc">
+                      <LocationImagePill location={destination.city} />
+                      <LocationDescriptionPill location={destination.city} description={destination.description} />
+                    </div>
+                  </div>
+                  <div className="location-card-modern location-card-modern-map">
+                    <LocationMapPill location={destination.city} country={COUNTRIES.find(c => c.code === country)?.name || country} setMapLoaded={setMapLoaded} />
+                  </div>
+                </div>
+              )}
+            </main>
+            <footer>&copy; {new Date().getFullYear()} Spontaneous Trip Generator</footer>
           </div>
-        )}
-      </main>
-      <footer>&copy; {new Date().getFullYear()} Spontaneous Trip Generator</footer>
-    </div>
+        } />
+        <Route path="/signup" element={<Signup />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
