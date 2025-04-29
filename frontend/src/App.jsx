@@ -3,6 +3,16 @@ import { marked } from 'marked';
 
 const COUNTRIES = [
   { code: 'CA', name: 'Canada' },
+  { code: 'US', name: 'United States' },
+  { code: 'GB', name: 'United Kingdom' },
+  { code: 'FR', name: 'France' },
+  { code: 'IT', name: 'Italy' },
+  { code: 'JP', name: 'Japan' },
+  { code: 'ES', name: 'Spain' },
+  { code: 'AU', name: 'Australia' },
+  { code: 'DE', name: 'Germany' },
+  { code: 'BR', name: 'Brazil' },
+  // Add more as desired
 ];
 
 // Use environment variable for Unsplash API key (Vite style)
@@ -134,7 +144,7 @@ function App() {
     setDestination(null);
     setMapLoaded(false);
     try {
-      const res = await fetch('http://localhost:8000/api/random-destination/');
+      const res = await fetch(`http://localhost:8000/api/random-destination/?country=${country}`);
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       setDestination(data);
@@ -152,19 +162,33 @@ function App() {
         <span className="site-title-icon" role="img" aria-label="airplane">✈️</span>
         <h1 className="site-title">Spontaneous Trip Generator</h1>
       </header>
+      {/* Controls for Country Selection */}
+      <section className="controls">
+        <label htmlFor="country-select">Choose a country:</label>
+        <select
+          id="country-select"
+          value={country}
+          onChange={e => setCountry(e.target.value)}
+          disabled={loading}
+        >
+          {COUNTRIES.map(c => (
+            <option key={c.code} value={c.code}>{c.name}</option>
+          ))}
+        </select>
+        <button className="generate-btn" onClick={fetchDestination} disabled={loading}>
+          {loading ? 'Loading...' : 'Surprise Me!'}
+        </button>
+      </section>
       {/* Hero Card for Country */}
       <section className="hero-card hero-card--with-image">
         <img
           className="hero-bg-img"
           src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80"
-          alt="Canada landscape"
+          alt={COUNTRIES.find(c => c.code === country)?.name + ' landscape'}
         />
         <div className="hero-content">
           <h2 className="hero-country">{COUNTRIES.find(c => c.code === country)?.name || country}</h2>
           <p className="hero-subtitle">Find your next {COUNTRIES.find(c => c.code === country)?.name || country} adventure in one click.</p>
-          <button className="generate-btn" onClick={fetchDestination} disabled={loading}>
-            {loading ? 'Loading...' : 'Surprise Me!'}
-          </button>
         </div>
       </section>
       {/* Spontaneous Locations */}

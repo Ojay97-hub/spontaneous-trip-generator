@@ -100,40 +100,14 @@ def get_claude_description(city, admin1=None, wiki_summary=None):
 
 @api_view(["GET"])
 def random_destination(request):
-    """Return a random destination in Canada with a description."""
+    """Return a random destination in the selected country with a description."""
 
-    curated_destinations = [
-        {"city": "Banff", "description": "A stunning resort town in Alberta's Rockies, famous for its national park and hot springs."},
-        {"city": "Whistler", "description": "A world-renowned ski resort in British Columbia, also popular in summer for mountain biking and hiking."},
-        {"city": "Jasper", "description": "A picturesque town in Jasper National Park, Alberta, known for its wildlife and outdoor adventure."},
-        {"city": "Niagara Falls", "description": "Home to the iconic waterfalls on the Ontario-US border, a must-see natural wonder."},
-        {"city": "Tofino", "description": "A laid-back surf town on Vancouver Island, BC, known for its beaches, wildlife, and scenery."},
-        {"city": "Quebec City", "description": "A historic city with cobblestone streets and a European feel, famous for its old town and Château Frontenac."},
-        {"city": "Charlottetown", "description": "The capital of Prince Edward Island, known for its maritime charm and Anne of Green Gables heritage."},
-    ]
-
-    geonames_username = os.environ.get("GEONAMES_USERNAME")
-    if geonames_username:
-        try:
-            response = requests.get(
-                f"http://api.geonames.org/searchJSON?country=CA&featureClass=P&maxRows=1000&orderby=population&username={geonames_username}",
-                timeout=5
-            )
-            response.raise_for_status()
-            data = response.json()
-            cities = data.get("geonames", [])
-            major_cities = [
-                {
-                    "city": city.get("name", "Unknown"),
-                    "description": f"{city.get('name', 'Unknown')} in {city.get('adminName1', '')}. Population: {city.get('population', 'N/A')}.",
-                    "adminName1": city.get("adminName1", "")
-                }
-                for city in cities if city.get("population", 0) and int(city["population"]) >= 100000
-            ]
-            destinations = major_cities + curated_destinations
-        except requests.exceptions.RequestException as e:
-            print(f"[GeoNames] API failed, falling back to hardcoded list. Error: {e}")
-            destinations = curated_destinations + [
+    country_code = request.GET.get('country', 'CA')
+    # Map of supported country codes to GeoNames API country codes and curated destinations
+    country_data = {
+        'CA': {
+            'geonames_code': 'CA',
+            'curated': [
                 {"city": "Vancouver", "description": "A vibrant west coast seaport in British Columbia, surrounded by mountains and ocean."},
                 {"city": "Toronto", "description": "Canada's largest city, famous for its skyline and multicultural atmosphere."},
                 {"city": "Montreal", "description": "A lively city in Quebec, known for its culture, festivals, and food scene."},
@@ -143,18 +117,103 @@ def random_destination(request):
                 {"city": "Winnipeg", "description": "Manitoba's capital, known for its arts scene and diverse culture."},
                 {"city": "Victoria", "description": "A picturesque city on Vancouver Island, famous for its gardens and harbor."},
             ]
-    else:
-        destinations = curated_destinations + [
-            {"city": "Vancouver", "description": "A vibrant west coast seaport in British Columbia, surrounded by mountains and ocean."},
-            {"city": "Toronto", "description": "Canada's largest city, famous for its skyline and multicultural atmosphere."},
-            {"city": "Montreal", "description": "A lively city in Quebec, known for its culture, festivals, and food scene."},
-            {"city": "Calgary", "description": "Alberta's largest city, gateway to the Rockies and home of the Calgary Stampede."},
-            {"city": "Ottawa", "description": "Canada's capital, known for its historic landmarks and vibrant arts scene."},
-            {"city": "Edmonton", "description": "Alberta's capital, with a lively arts community and access to national parks."},
-            {"city": "Winnipeg", "description": "Manitoba's capital, known for its arts scene and diverse culture."},
-            {"city": "Victoria", "description": "A picturesque city on Vancouver Island, famous for its gardens and harbor."},
+        },
+        'US': {
+            'geonames_code': 'US',
+            'curated': [
+                {"city": "New York", "description": "The city that never sleeps, famous for Times Square, Central Park, and its skyline."},
+                {"city": "San Francisco", "description": "Known for the Golden Gate Bridge, steep streets, and vibrant culture."},
+                {"city": "Chicago", "description": "The Windy City, known for its architecture and deep-dish pizza."},
+                {"city": "Los Angeles", "description": "The entertainment capital, home to Hollywood and beautiful beaches."},
+                {"city": "Miami", "description": "A vibrant city with stunning beaches, nightlife, and Cuban culture."},
+            ]
+        },
+        'GB': {
+            'geonames_code': 'GB',
+            'curated': [
+                {"city": "London", "description": "The historic capital, famous for Big Ben, the Thames, and world-class museums."},
+                {"city": "Edinburgh", "description": "Scotland's capital, known for its castle and festivals."},
+                {"city": "Manchester", "description": "A lively city famous for football and music."},
+            ]
+        },
+        'FR': {
+            'geonames_code': 'FR',
+            'curated': [
+                {"city": "Paris", "description": "The City of Light, known for the Eiffel Tower, art, and cuisine."},
+                {"city": "Nice", "description": "A beautiful city on the French Riviera, famous for its beaches and old town."},
+            ]
+        },
+        'IT': {
+            'geonames_code': 'IT',
+            'curated': [
+                {"city": "Rome", "description": "The Eternal City, home to ancient ruins and vibrant piazzas."},
+                {"city": "Venice", "description": "A romantic city of canals and bridges."},
+            ]
+        },
+        'JP': {
+            'geonames_code': 'JP',
+            'curated': [
+                {"city": "Tokyo", "description": "Japan's bustling capital, known for its blend of tradition and modernity."},
+                {"city": "Kyoto", "description": "Famous for its temples, gardens, and geisha culture."},
+            ]
+        },
+        'ES': {
+            'geonames_code': 'ES',
+            'curated': [
+                {"city": "Barcelona", "description": "Known for Gaudí architecture and Mediterranean beaches."},
+                {"city": "Madrid", "description": "Spain's capital, famous for art, parks, and tapas."},
+            ]
+        },
+        'AU': {
+            'geonames_code': 'AU',
+            'curated': [
+                {"city": "Sydney", "description": "Home to the Opera House and beautiful beaches."},
+                {"city": "Melbourne", "description": "A cultural capital known for coffee and arts."},
+            ]
+        },
+        'DE': {
+            'geonames_code': 'DE',
+            'curated': [
+                {"city": "Berlin", "description": "Germany's capital, rich in history and culture."},
+                {"city": "Munich", "description": "Known for Oktoberfest and Bavarian charm."},
+            ]
+        },
+        'BR': {
+            'geonames_code': 'BR',
+            'curated': [
+                {"city": "Rio de Janeiro", "description": "Famous for its Carnival, beaches, and Christ the Redeemer."},
+                {"city": "São Paulo", "description": "Brazil's largest city, known for culture and food."},
+            ]
+        },
+    }
+
+    country_info = country_data.get(country_code, country_data['CA'])
+    geonames_code = country_info['geonames_code']
+    curated_destinations = country_info['curated']
+
+    geonames_username = os.environ.get("GEONAMES_USERNAME", "demo")
+    destinations = []
+    try:
+        response = requests.get(
+            f"http://api.geonames.org/searchJSON?country={geonames_code}&featureClass=P&maxRows=1000&orderby=population&username={geonames_username}",
+            timeout=5
+        )
+        response.raise_for_status()
+        data = response.json()
+        cities = data.get("geonames", [])
+        major_cities = [
+            {
+                "city": city.get("name", "Unknown"),
+                "description": f"{city.get('name', 'Unknown')} in {city.get('adminName1', '')}. Population: {city.get('population', 'N/A')}.",
+                "adminName1": city.get("adminName1", "")
+            }
+            for city in cities if city.get("population", 0) and int(city["population"]) >= 100000
         ]
-    
+        destinations = major_cities + curated_destinations
+    except requests.exceptions.RequestException as e:
+        print(f"[GeoNames] API failed, falling back to hardcoded list. Error: {e}")
+        destinations = curated_destinations
+
     selected = random.choice(destinations)
     try:
         ai_desc = get_claude_description(selected["city"], selected.get("adminName1"))
