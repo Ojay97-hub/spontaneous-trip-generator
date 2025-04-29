@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { marked } from 'marked';
 
 const COUNTRIES = [
   { code: 'CA', name: 'Canada' },
@@ -7,6 +8,26 @@ const COUNTRIES = [
 // Use environment variable for Unsplash API key (Vite style)
 const UNSPLASH_ACCESS_KEY = import.meta.env.VITE_REACT_APP_UNSPLASH_ACCESS_KEY;
 const GEONAMES_USERNAME = import.meta.env.VITE_GEONAMES_USERNAME;
+
+// Helper to ensure all links open externally
+function externalizeLinks(html) {
+  return html.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
+}
+
+// Helper to split description and links
+function splitDescriptionAndLinks(md) {
+  if (!md) return { desc: '', links: '' };
+  // Try to split at the first markdown link or new line after the main description
+  const linkMatch = md.match(/\[.+?\]\(.+?\)/s);
+  if (linkMatch) {
+    const idx = md.indexOf(linkMatch[0]);
+    return {
+      desc: md.slice(0, idx).trim(),
+      links: md.slice(idx).trim(),
+    };
+  }
+  return { desc: md, links: '' };
+}
 
 const fetchImageUrl = async (location) => {
   try {
@@ -20,30 +41,6 @@ const fetchImageUrl = async (location) => {
     return null;
   }
 };
-
-// Add fetch functions for GeoNames and Wikipedia
-async function fetchGeoNamesDescription(location, country) {
-  // Use GeoNames API with env username
-  const url = `https://secure.geonames.org/searchJSON?q=${encodeURIComponent(location)}&country=${country}&maxRows=1&username=${GEONAMES_USERNAME}`;
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-    return data.geonames?.[0]?.summary || data.geonames?.[0]?.fcodeName || '';
-  } catch {
-    return '';
-  }
-}
-
-async function fetchWikipediaSummary(location) {
-  const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(location)}`;
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-    return data.extract || '';
-  } catch {
-    return '';
-  }
-}
 
 function LocationImagePill({ location }) {
   const [imageUrl, setImageUrl] = useState(null);
@@ -67,26 +64,12 @@ function LocationImagePill({ location }) {
   );
 }
 
-function LocationDescriptionPill({ location, country }) {
-  const [geoDesc, setGeoDesc] = useState('');
-  const [wikiSummary, setWikiSummary] = useState('');
-  const [wikiUrl, setWikiUrl] = useState('');
+function LocationDescriptionPill({ location, description }) {
+  const [expanded, setExpanded] = useState(false);
 
-  useEffect(() => {
-    fetchWikipediaSummary(location).then(summary => {
-      if (summary) {
-        setWikiSummary(summary);
-        setWikiUrl(`https://en.wikipedia.org/wiki/${encodeURIComponent(location)}`);
-      } else {
-        fetchGeoNamesDescription(location, country).then(desc => {
-          setWikiSummary(desc || 'No description available for this location.');
-          setWikiUrl('');
-        });
-      }
-    });
-  }, [location, country]);
+  // Split description and links
+  const { desc, links } = splitDescriptionAndLinks(description);
 
-  // Helper: truncate to 50 words
   function truncateWords(text, maxWords = 50) {
     if (!text) return '';
     const words = text.split(/\s+/);
@@ -94,15 +77,31 @@ function LocationDescriptionPill({ location, country }) {
     return words.slice(0, maxWords).join(' ') + '...';
   }
 
+  const isTruncated = desc && desc.split(/\s+/).length > 50;
+
   return (
     <div className="location-desc-pill-inner">
       <h2 className="location-title-pill">{location}</h2>
-      <div className="geo-desc">{truncateWords(wikiSummary)}</div>
-      {wikiUrl ? (
-        <a className="see-more-btn" href={wikiUrl} target="_blank" rel="noopener noreferrer">
-          See more info
-        </a>
-      ) : null}
+      <div className="geo-desc">
+        {expanded ? desc : truncateWords(desc)}
+        {links && (
+          <div
+            style={{ marginTop: 8 }}
+            dangerouslySetInnerHTML={{ __html: externalizeLinks(marked.parse(links)) }}
+          />
+        )}
+      </div>
+      <div className="ai-badge-pill">
+        <span role="img" aria-label="AI">🤖</span> Powered by Claude AI
+      </div>
+      {isTruncated && (
+        <button
+          className="see-more-btn see-more-btn-ai"
+          onClick={() => setExpanded(e => !e)}
+        >
+          {expanded ? 'See less' : 'See more'}
+        </button>
+      )}
     </div>
   );
 }
@@ -176,7 +175,7 @@ function App() {
             <div className="location-card-modern">
               <div className="location-card-modern-image-desc">
                 <LocationImagePill location={destination.city} />
-                <LocationDescriptionPill location={destination.city} country={country} />
+                <LocationDescriptionPill location={destination.city} description={destination.description} />
               </div>
             </div>
             <div className="location-card-modern location-card-modern-map">

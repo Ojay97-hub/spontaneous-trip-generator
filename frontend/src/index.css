@@ -372,3 +372,35 @@ footer {
   opacity: 0.85;
   animation: fade-in 2s cubic-bezier(0.23, 1, 0.32, 1);
 }
+
+/* AI badge styling */
+.ai-badge-pill {
+  display: inline-block;
+  background: #f3f3fa;
+  color: #6b47dc;
+  border-radius: 8px;
+  padding: 2px 10px;
+  font-size: 0.9em;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 4px rgba(107,71,220,0.10);
+}
+
+/* See more/less button for AI */
+.see-more-btn-ai {
+  margin-left: 0;
+  margin-top: 10px;
+  background: #f3f3fa;
+  color: #6b47dc;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 16px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.see-more-btn-ai:hover {
+  background: #e4e1fa;
+}

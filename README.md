@@ -8,6 +8,25 @@ A simple full-stack web app to inspire spontaneous travel! Click a button to get
 - **React + Vite + Tailwind CSS** frontend
 - **Django REST API** backend (no database required for MVP)
 - Fetches a random Canadian destination on demand
+- **AI-powered descriptions**: Uses Claude AI to generate engaging city descriptions and provide clickable links to top tourist attractions
+
+---
+
+## Claude AI Integration
+
+This app uses [Claude AI](https://www.anthropic.com/products/claude) to generate:
+- Rich, vibrant travel descriptions for each destination
+- 2–4 clickable links to popular local attractions (official or trusted sources)
+- All descriptions and links are generated server-side and delivered via the backend API
+
+**Environment Variables:**
+- Backend requires a `CLAUDE_API_KEY` in `backend/.env` for Claude API access.
+- See `.env.example` for setup.
+
+**Frontend Experience:**
+- Users see a preview of the AI description and can expand to read the full text
+- Attraction links are always clickable and open in a new tab
+- An "🤖 Powered by Claude AI" badge is shown on every description
 
 ---
 
