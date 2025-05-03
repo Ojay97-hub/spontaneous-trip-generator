@@ -1,15 +1,12 @@
 import { useState, useEffect } from 'react'
 import { marked } from 'marked';
-import Navbar from "./Navbar";
-import AccountDropdown from "./AccountDropdown";
-import GoogleLoginButton from './GoogleLoginButton';
+import Navbar from "./components/Navbar";
+import AccountDropdown from "./components/AccountDropdown";
 import { Link, Routes, Route, useLocation, useNavigate } from "react-router-dom";
-import Signup from "./Signup";
-import VerifyEmail from "./VerifyEmail";
-import Toast from './Toast';
-import { useToast } from './useToast';
-import Profile from './Profile';
-import Login from './Login';
+import Signup from "./components/Signup";
+import VerifyEmail from "./components/VerifyEmail";
+import Profile from './components/Profile';
+import Login from './components/Login';
 import { auth } from './firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 
@@ -154,11 +151,7 @@ function LocationMapPill({ location, country, setMapLoaded }) {
 function App() {
   const location = useLocation();
   const navigate = useNavigate();
-  const notification = location.state && location.state.notification;
   // Use localStorage to persist pendingVerification between reloads
-  const [pendingVerification, setPendingVerification] = useState(() => {
-    return localStorage.getItem('pendingVerification') === 'true';
-  });
   const [country, setCountry] = useState('CA');
   const [destination, setDestination] = useState(null);
   const [heroImgUrl, setHeroImgUrl] = useState('');
@@ -166,7 +159,6 @@ function App() {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [toast, showToast, closeToast] = useToast();
   const [user, setUser] = useState(() => auth.currentUser);
 
   // Listen for Firebase auth state changes
@@ -207,25 +199,20 @@ function App() {
       });
   }, [location.state]);
 
-  // Listen for navigation state to clear pendingVerification after verification
-  useEffect(() => {
-    if (notification && notification.toLowerCase().includes('verified')) {
-      setPendingVerification(false);
-      localStorage.removeItem('pendingVerification');
-    }
-  }, [notification]);
-
-  // Pass setPendingVerification to Signup
-  function handleSignupSuccess() {
-    setPendingVerification(true);
-    localStorage.setItem('pendingVerification', 'true');
+  // Logout handler
+  function handleLogout() {
+    signOut(auth)
+      .then(() => {
+        setUser(null);
+        navigate('/');
+      })
+      .catch(() => {
+        setUser(null);
+      });
   }
 
-  useEffect(() => {
-    if (notification) {
-      showToast(notification, notification.toLowerCase().includes('fail') ? 'error' : 'success');
-    }
-  }, [notification, showToast]);
+  // Hide navbar on auth pages
+  const hideNavbar = ['/signup', '/login', '/verify-email'].includes(location.pathname);
 
   // Fetch hero image when country changes
   useEffect(() => {
@@ -259,56 +246,15 @@ function App() {
     }
   };
 
-  // Handler for Google login success
-  const handleGoogleLogin = (googleToken) => {
-    fetch('http://127.0.0.1:8000/auth/social/login/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        access_token: googleToken,
-        provider: 'google'
-      })
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.key) {
-          setUser({ token: data.key });
-          localStorage.setItem('authToken', data.key);
-          // Optionally redirect to dashboard or show success
-        } else {
-          alert('Google login failed.');
-        }
-      });
-  };
-
-  // Logout handler
-  function handleLogout() {
-    signOut(auth)
-      .then(() => {
-        setUser(null);
-        showToast('Logged out successfully!', 'success');
-        navigate('/');
-      })
-      .catch(() => {
-        setUser(null);
-        showToast('Logged out!', 'success');
-      });
+  // Pass setPendingVerification to Signup
+  function handleSignupSuccess() {
+    navigate('/', { state: { notification: 'Signup successful!' } });
   }
-
-  // Hide navbar on auth pages
-  const hideNavbar = ['/signup', '/login', '/verify-email'].includes(location.pathname);
 
   return (
     <div>
-      <Toast message={toast.message} type={toast.type} onClose={closeToast} />
       {/* Only show Navbar if not on auth pages */}
       {!hideNavbar && <Navbar user={user} onLogout={handleLogout} />}
-      {/* Banner: Only show if pendingVerification is true and not logged in */}
-      {pendingVerification && !user && (
-        <div style={{ position: 'fixed', top: 16, right: 16, background: '#2563eb', color: '#fff', padding: '12px 28px', borderRadius: 10, fontWeight: 600, zIndex: 100, boxShadow: '0 2px 12px #2563eb33', fontSize: 17 }}>
-          Please confirm your email to log in.
-        </div>
-      )}
       <Routes>
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/signup" element={<Signup onSignupSuccess={handleSignupSuccess} />} />
@@ -336,68 +282,31 @@ function App() {
             <div>
               {/* Conditional CTA below navbar */}
               {!user ? (
-                <div style={{
-                  background: "#fff",
-                  padding: 28,
-                  borderRadius: 16,
-                  maxWidth: 540,
-                  margin: "32px auto 32px auto",
-                  boxShadow: "0 2px 18px #2563eb18",
-                  display: "flex",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 28,
-                  position: "relative"
-                }}>
-                  <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <div style={{
-                      background: "#f3f4f6",
-                      borderRadius: "50%",
-                      width: 38,
-                      height: 38,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      boxShadow: "0 1px 2px #fca31111",
-                      marginBottom: 12,
-                      fontSize: 22
-                    }}>
+                <div className="cta-container">
+                  <div className="cta-info">
+                    <div className="cta-icon">
                       <span role="img" aria-label="bookmark">📍</span>
                     </div>
-                    <h2 style={{ color: "#4f46e5", marginBottom: 10, fontWeight: 700, fontSize: 20, textAlign: "center" }}>
+                    <h2 className="cta-title">
                       Sign up to save your favorite spontaneous locations!
                     </h2>
-                    <p style={{ color: "#444", marginBottom: 12, fontSize: 15, textAlign: "center" }}>
+                    <p className="cta-desc">
                       Create an account to bookmark and revisit your best adventures.
                     </p>
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, minWidth: 170 }}>
+                  <div className="cta-actions">
                     <Link
                       to="/signup"
-                      style={{
-                        background: "linear-gradient(90deg, #fca311 0%, #fbbf24 100%)",
-                        color: "#fff",
-                        fontWeight: 600,
-                        fontSize: 16,
-                        padding: "0.5rem 1.5rem",
-                        borderRadius: 8,
-                        textDecoration: "none",
-                        boxShadow: "0 1px 3px #fca31122",
-                        marginTop: 2,
-                        transition: "background 0.18s, transform 0.12s",
-                        marginBottom: 0
-                      }}
+                      className="cta-signup"
                     >
                       Sign Up
                     </Link>
-                    <span style={{ color: "#888", fontSize: 15, margin: "4px 0" }}>or</span>
-                    <GoogleLoginButton onLoginSuccess={handleGoogleLogin} />
                   </div>
                 </div>
               ) : (
-                <div style={{ background: "#e0f7fa", padding: 24, borderRadius: 10, maxWidth: 420, margin: "40px auto", boxShadow: "0 2px 12px rgba(0,0,0,0.07)", textAlign: 'center' }}>
-                  <h2 style={{ color: "#00796b", marginBottom: 12 }}>Welcome, {user.username}!</h2>
-                  <p style={{ color: "#444", fontSize: 18, marginTop: 10 }}>We're glad to have you back. Ready to discover your next spontaneous adventure?</p>
+                <div className="cta-welcome">
+                  <h2 className="cta-welcome-title">Welcome, {user.username}!</h2>
+                  <p className="cta-welcome-desc">We're glad to have you back. Ready to discover your next spontaneous adventure?</p>
                 </div>
               )}
               {/* Controls for Country Selection */}

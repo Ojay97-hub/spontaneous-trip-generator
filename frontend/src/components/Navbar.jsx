@@ -1,7 +1,7 @@
 import React from "react";
 import AccountDropdown from "./AccountDropdown";
 import { Link } from 'react-router-dom';
-import "./Navbar.css";
+import '../Navbar.css';
 
 const Navbar = ({ user, onLogout }) => (
   <nav className="navbar-stg">
@@ -19,7 +19,7 @@ const Navbar = ({ user, onLogout }) => (
       ) : (
         <span className="navbar-user-info">Not logged in</span>
       )}
-      <AccountDropdown user={user} />
+      <AccountDropdown user={user} onLogout={onLogout} />
     </div>
   </nav>
 );

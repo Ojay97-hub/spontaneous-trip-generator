@@ -126,7 +126,6 @@ button:hover {
 .location-card-modern-map {
   min-width: 320px;
   max-width: 600px;
-  min-height: 350px;
   background: #fff;
   border-radius: 18px;
   box-shadow: 0 6px 32px 0 rgba(0,0,0,0.12), 0 2px 12px 0 rgba(0,0,0,0.07);
@@ -144,38 +143,46 @@ button:hover {
   margin: 0 auto;
 }
 
-.location-image-pill-outer {
-  width: 100%;
-  background: #eaf1fb;
-  display: block;
-  aspect-ratio: 16/7;
-  overflow: hidden;
-}
-
-.location-img-pill {
+.location-img-pill,
+.hero-bg-img {
   width: 100%;
   max-width: none;
-  height: 100%;
-  max-height: 330px;
   object-fit: cover;
-  border-radius: 0;
   display: block;
   margin: 0;
+}
+.location-img-pill {
+  height: 100%;
+  max-height: 330px;
+  border-radius: 0;
+}
+.hero-bg-img {
+  height: 100%;
+  position: absolute;
+  top: 0; left: 0;
+  z-index: 1;
+  filter: brightness(0.7) blur(0px) saturate(1.1);
+  transition: filter 0.3s;
+}
+
+.location-desc-pill-inner,
+.location-title-pill,
+.geo-desc {
+  width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .location-desc-pill-inner {
   background: #fff;
-  padding: 1.2rem 1.2rem 1.2rem 1.2rem;
+  padding: 1.2rem;
   border-radius: 0 0 18px 18px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   flex: 1 1 0;
   min-height: 120px;
-  width: 100%;
-  box-sizing: border-box;
-  overflow-wrap: break-word;
-  word-break: break-word;
   justify-content: space-between;
 }
 
@@ -193,17 +200,8 @@ button:hover {
   color: #334155;
   font-weight: 500;
   min-height: 2.5em;
-  width: 100%;
-  overflow-wrap: break-word;
-  word-break: break-word;
   display: block;
   flex: 1 1 auto;
-}
-
-.ai-badge-pill {
-  margin-top: auto !important;
-  margin-bottom: 0.5rem !important;
-  align-self: flex-start;
 }
 
 .see-more-btn,
@@ -241,78 +239,6 @@ button:hover {
   color: #262626;
   box-shadow: 0 2px 12px #94a3b833;
   min-height: 2.5em;
-}
-
-@media (max-width: 900px) {
-  .locations-row {
-    flex-direction: column;
-    gap: 2rem;
-    align-items: center;
-  }
-  .location-card-modern,
-  .location-card-modern-map {
-    max-width: 600px;
-    min-width: 320px;
-    width: 100%;
-    margin: 0 auto;
-    border-radius: 14px;
-    min-height: 220px;
-    box-sizing: border-box;
-  }
-  .location-desc-pill-inner {
-    padding: 1rem 0.7rem 1rem 0.7rem;
-    border-radius: 0 0 14px 14px;
-    min-height: 80px;
-  }
-}
-
-@media (min-width: 1200px) {
-  .locations-row {
-    flex-direction: row;
-    align-items: stretch;
-    gap: 3.5rem;
-  }
-  .location-card-modern,
-  .location-card-modern-map {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-  .locations-row > .location-card-modern,
-  .locations-row > .location-card-modern-map {
-    flex: 1 1 0;
-    min-height: 420px;
-    height: 100%;
-  }
-}
-
-@media (max-width: 430px) {
-  .location-card-modern,
-  .location-card-modern-map {
-    max-width: 95vw;
-    min-width: 0;
-    width: 90vw;
-    margin: 0.5rem auto;
-    border-radius: 12px;
-    font-size: 0.98rem;
-    box-sizing: border-box;
-  }
-  .location-title-pill {
-    font-size: 1.25rem;
-  }
-  .geo-desc,
-  .location-desc-pill-inner {
-    font-size: 0.98rem;
-    padding: 0.8rem 0.4rem 0.8rem 0.4rem;
-  }
-  .hero-card {
-    padding: 1.2rem 0.6rem 1.2rem 0.6rem;
-    font-size: 1rem;
-    min-height: 160px;
-  }
-  h1, .hero-country {
-    font-size: 1.5rem;
-  }
 }
 
 /* Hero Card Styling */
@@ -373,14 +299,6 @@ button:hover {
   overflow: hidden;
   background: none;
   box-shadow: 0 8px 32px #2563eb44;
-}
-.hero-bg-img {
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  object-fit: cover;
-  z-index: 1;
-  filter: brightness(0.7) blur(0px) saturate(1.1);
-  transition: filter 0.3s;
 }
 .hero-card--with-image .hero-content {
   position: relative;
@@ -467,4 +385,167 @@ footer {
 }
 .see-more-btn-ai:hover {
   background: #e4e1fa;
+}
+
+/* --- CTA & Home Page Styles --- */
+.cta-container {
+  background: #fff;
+  padding: 28px;
+  border-radius: 16px;
+  max-width: 540px;
+  margin: 32px auto;
+  box-shadow: 0 2px 18px #2563eb18;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 28px;
+  position: relative;
+}
+.cta-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.cta-icon {
+  background: #f3f4f6;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px #fca31111;
+  margin-bottom: 12px;
+  font-size: 22px;
+}
+.cta-title {
+  color: #4f46e5;
+  margin-bottom: 10px;
+  font-weight: 700;
+  font-size: 20px;
+  text-align: center;
+}
+.cta-desc {
+  color: #444;
+  margin-bottom: 12px;
+  font-size: 15px;
+  text-align: center;
+}
+.cta-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 170px;
+}
+.cta-signup {
+  background: linear-gradient(90deg, #fca311 0%, #fbbf24 100%);
+  color: #fff;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: 0 1px 3px #fca31122;
+  margin-top: 2px;
+  transition: background 0.18s, transform 0.12s;
+  margin-bottom: 0;
+}
+.cta-or {
+  color: #888;
+  font-size: 15px;
+  margin: 4px 0;
+}
+
+.cta-welcome {
+  background: #e0f7fa;
+  padding: 24px;
+  border-radius: 10px;
+  max-width: 420px;
+  margin: 40px auto;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  text-align: center;
+}
+.cta-welcome-title {
+  color: #00796b;
+  margin-bottom: 12px;
+}
+.cta-welcome-desc {
+  color: #444;
+  font-size: 18px;
+  margin-top: 10px;
+}
+
+/* --- Media Queries --- */
+@media (max-width: 900px) {
+  .locations-row {
+    flex-direction: column;
+    gap: 2rem;
+    align-items: center;
+  }
+  .location-card-modern,
+  .location-card-modern-map {
+    max-width: 600px;
+    min-width: 320px;
+    width: 100%;
+    margin: 0 auto;
+    border-radius: 14px;
+    min-height: 220px;
+    box-sizing: border-box;
+  }
+  .location-desc-pill-inner {
+    padding: 1rem 0.7rem;
+    border-radius: 0 0 14px 14px;
+    min-height: 80px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .locations-row {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 3.5rem;
+  }
+  .location-card-modern,
+  .location-card-modern-map {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .locations-row > .location-card-modern,
+  .locations-row > .location-card-modern-map {
+    flex: 1 1 0;
+    min-height: 420px;
+    height: 100%;
+  }
+}
+
+@media (max-width: 430px) {
+  .location-card-modern,
+  .location-card-modern-map {
+    max-width: 95vw;
+    min-width: 0;
+    width: 90vw;
+    margin: 0.5rem auto;
+    border-radius: 12px;
+    font-size: 0.98rem;
+    box-sizing: border-box;
+  }
+  .location-title-pill {
+    font-size: 1.25rem;
+  }
+  .geo-desc,
+  .location-desc-pill-inner {
+    font-size: 0.98rem;
+    padding: 0.8rem 0.4rem;
+  }
+  .hero-card {
+    padding: 1.2rem 0.6rem;
+    font-size: 1rem;
+    min-height: 160px;
+  }
+  h1, .hero-country {
+    font-size: 1.5rem;
+  }
 }

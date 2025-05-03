@@ -180,7 +180,7 @@ REST_AUTH_REGISTER_VERIFICATION_ENABLED = True
 REST_AUTH_REGISTER_EMAIL_VERIFICATION_URL = 'http://localhost:5173/verify-email'
 
 # Use custom allauth adapter to send frontend confirmation link
-ACCOUNT_ADAPTER = 'backend.custom_adapter.CustomAccountAdapter'
+# ACCOUNT_ADAPTER = 'backend.custom_adapter.CustomAccountAdapter'
 FRONTEND_URL = 'http://localhost:5173'
 
 CORS_ALLOWED_ORIGINS = [

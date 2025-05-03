@@ -12,6 +12,7 @@ A simple full-stack web app to inspire spontaneous travel! Click a button to get
 - **Country flag overlay**: The hero section displays the selected country's flag
 - **Multi-country support**: Choose from a list of countries to generate spontaneous trips worldwide
 - **AI-powered descriptions**: Uses Claude AI to generate engaging city descriptions and provide clickable links to top tourist attractions
+- **Firebase Authentication** (Email/Password & Google OAuth) via Firebase
 
 ---
 
@@ -32,6 +33,29 @@ This app uses [Claude AI](https://www.anthropic.com/products/claude) to generate
 - An "🤖 Powered by Claude AI" badge is shown on every description
 - The hero image and flag update instantly when you select a new country
 - Responsive and visually polished UI, with robust fallback for images
+
+---
+
+## Firebase Authentication Integration
+
+This app now uses [Firebase Authentication](https://firebase.google.com/docs/auth) for secure login, signup, and Google sign-in. Users can create accounts, sign in, and manage their profile securely.
+
+### Firebase Setup
+1. Go to [Firebase Console](https://console.firebase.google.com/) and create a project.
+2. Enable Authentication (Email/Password and Google sign-in).
+3. In your Firebase project settings, get your web app config.
+4. Copy the config to `frontend/src/firebase.js` (replace the placeholders):
+   ```js
+   const firebaseConfig = {
+     apiKey: "YOUR_API_KEY",
+     authDomain: "YOUR_AUTH_DOMAIN",
+     projectId: "YOUR_PROJECT_ID",
+     storageBucket: "YOUR_STORAGE_BUCKET",
+     messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+     appId: "YOUR_APP_ID"
+   };
+   ```
+5. Add your domain (e.g., `localhost`) to the Firebase Auth sign-in methods for development.
 
 ---
 
@@ -104,7 +128,9 @@ This MVP allows users to immediately experience the core value—discovering spo
    cd frontend
    npm install
    ```
-2. **Run the dev server:**
+2. **Configure Firebase:**
+   - Follow the [Firebase Setup](#firebase-authentication-integration) instructions above.
+3. **Run the dev server:**
    ```bash
    npm run dev
    ```
@@ -125,7 +151,7 @@ spontaneous-trip-generator/
 ---
 
 ## Notes
-- No authentication or database required for MVP.
+- Firebase Authentication is now required for login/signup. See the section above for setup.
 - To add more countries or destinations, update the backend hardcoded list in `trips/views.py`.
 - For deployment, further configuration will be needed.
 
