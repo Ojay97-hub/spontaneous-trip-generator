@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Toast from './Toast';
 import { useToast } from './useToast';
+import { auth } from './firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 export default function Login({ onLoginSuccess }) {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [toast, showToast, closeToast] = useToast();
@@ -14,22 +16,13 @@ export default function Login({ onLoginSuccess }) {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch('http://localhost:8000/auth/login/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await res.json();
-      if (res.ok && data.key) {
-        showToast('Login successful!', 'success');
-        if (onLoginSuccess) onLoginSuccess(data.key);
-        navigate('/');
-      } else {
-        setError(data.detail || data.non_field_errors || 'Login failed');
-      }
-    } catch {
-      setError('Login failed. Please try again.');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const token = await userCredential.user.getIdToken();
+      showToast('Login successful!', 'success');
+      if (onLoginSuccess) onLoginSuccess(token);
+      navigate('/');
+    } catch (error) {
+      setError(error.message);
     }
   };
 
@@ -38,10 +31,10 @@ export default function Login({ onLoginSuccess }) {
       <h2>Login</h2>
       <form onSubmit={handleSubmit}>
         <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
           required
           style={{ width: '100%', marginBottom: 10 }}
         />

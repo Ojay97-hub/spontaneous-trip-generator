@@ -16,12 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from backend.api.views import current_user
+from backend.api.views import current_user, get_csrf_token
 from dj_rest_auth.registration.views import VerifyEmailView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/me/', current_user),
+    path('api/csrf/', get_csrf_token),
     path('api/', include('trips.urls')),
     path('accounts/', include('allauth.urls')),
     path('auth/', include('dj_rest_auth.urls')),

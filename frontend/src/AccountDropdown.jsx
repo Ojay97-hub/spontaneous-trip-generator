@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from 'react-router-dom';
+import { auth } from './firebase';
+import { signOut } from 'firebase/auth';
 
 const dropdownStyles = {
   position: "relative",
@@ -64,7 +66,7 @@ const AccountDropdown = ({ user }) => {
 
   // Helper for avatar/initials
   const getAvatar = () => {
-    if (user && user.username) {
+    if (user && (user.displayName || user.email)) {
       return (
         <div style={{
           background: 'linear-gradient(135deg, #fca311 60%, #4f46e5 100%)',
@@ -80,8 +82,8 @@ const AccountDropdown = ({ user }) => {
           border: '2.5px solid #fff',
           boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
           transition: 'box-shadow 0.2s',
-        }} title={user.username}>
-          {user.username[0].toUpperCase()}
+        }} title={user.displayName || user.email}>
+          {(user.displayName ? user.displayName[0] : user.email[0]).toUpperCase()}
         </div>
       );
     }
@@ -116,27 +118,63 @@ const AccountDropdown = ({ user }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Firebase logout
+  const handleLogout = () => {
+    signOut(auth).then(() => {
+      setOpen(false);
+      navigate('/');
+    });
+  };
+
   return (
     <div style={dropdownStyles} ref={dropdownRef}>
       <button
         style={{ border: 'none', background: 'none', padding: 0, outline: 'none', cursor: 'pointer' }}
         onClick={() => setOpen((o) => !o)}
-        aria-label={user ? `Account: ${user.username}` : "Account menu"}
-        title={user ? user.username : "Account"}
+        aria-label={user ? `Account: ${user.displayName || user.email}` : "Account menu"}
+        title={user ? user.displayName || user.email : "Account"}
         tabIndex={0}
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setOpen(o => !o); }}
       >
         {getAvatar()}
       </button>
       {open && (
-        <div style={menuStyles}>
+        <div style={{
+          ...menuStyles,
+          background: 'linear-gradient(135deg, #fca311 60%, #4f46e5 100%)',
+          color: '#fff',
+          boxShadow: '0 8px 32px rgba(80,80,180,0.18)',
+          border: 'none',
+        }}>
           {user ? (
             <>
-              <div style={{ padding: "8px 16px", fontWeight: 600, color: "#4f46e5" }}>
-                Hi, {user.username}!
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '18px 16px 12px 16px',
+                borderRadius: 14,
+                background: 'rgba(255,255,255,0.13)',
+                boxShadow: '0 2px 8px #fff1',
+                marginBottom: 8,
+              }}>
+                <span style={{ fontSize: 32, marginRight: 6, filter: 'drop-shadow(0 2px 4px #2223)' }} role="img" aria-label="wave">👋</span>
+                <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: '-0.5px', color: '#fff', textShadow: '0 1px 6px #4f46e588' }}>
+                  Welcome, {user.displayName || user.email}!
+                </span>
               </div>
-              <hr style={dividerStyles} />
-              {/* The main logout is now in Navbar, so hide here or call onLogout if you want */}
+              <hr style={{
+                margin: '10px 0',
+                border: 0,
+                borderTop: '1.5px solid #fff5',
+                opacity: 0.5,
+              }} />
+              <button
+                style={{ ...menuItemStyles, color: '#fff', background: 'rgba(255,255,255,0.09)', fontWeight: 600, width: '100%', marginTop: 8 }}
+                onClick={handleLogout}
+              >
+                Sign Out
+              </button>
             </>
           ) : (
             <>
@@ -145,6 +183,9 @@ const AccountDropdown = ({ user }) => {
                 style={{
                   ...menuItemStyles,
                   ...(hovered === "login" ? menuItemHover : {}),
+                  color: '#fff',
+                  background: 'rgba(255,255,255,0.09)',
+                  fontWeight: 600,
                 }}
                 onMouseEnter={() => setHovered("login")}
                 onMouseLeave={() => setHovered(null)}
@@ -157,6 +198,9 @@ const AccountDropdown = ({ user }) => {
                 style={{
                   ...menuItemStyles,
                   ...(hovered === "signup" ? menuItemHover : {}),
+                  color: '#fff',
+                  background: 'rgba(255,255,255,0.09)',
+                  fontWeight: 600,
                 }}
                 onMouseEnter={() => setHovered("signup")}
                 onMouseLeave={() => setHovered(null)}
@@ -169,16 +213,17 @@ const AccountDropdown = ({ user }) => {
                 style={{
                   ...menuItemStyles,
                   ...(hovered === "google" ? menuItemHover : {}),
-                  color: "#ea4335",
-                  display: "flex",
-                  alignItems: "center",
+                  color: '#fff',
+                  background: 'rgba(255,255,255,0.09)',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: 8,
                 }}
                 onMouseEnter={() => setHovered("google")}
                 onMouseLeave={() => setHovered(null)}
                 onClick={e => { e.preventDefault(); setOpen(false); navigate('/login?provider=google'); }}
               >
-                {/* Google G Icon SVG */}
                 <svg width="18" height="18" viewBox="0 0 48 48" style={{ display: 'block' }}><g><path fill="#4285F4" d="M24 9.5c3.54 0 6.46 1.22 8.47 2.81l6.3-6.3C34.7 2.71 29.82 0 24 0 14.82 0 6.84 5.74 2.69 14.09l7.73 6.01C12.21 13.92 17.62 9.5 24 9.5z"/><path fill="#34A853" d="M46.1 24.5c0-1.56-.14-3.07-.4-4.5H24v9h12.39c-.53 2.83-2.13 5.22-4.52 6.84l7.04 5.48C43.87 37.73 46.1 31.62 46.1 24.5z"/><path fill="#FBBC05" d="M10.42 28.1A14.98 14.98 0 0 1 9.5 24c0-1.42.24-2.8.67-4.1l-7.73-6.01A23.93 23.93 0 0 0 0 24c0 3.8.91 7.39 2.52 10.59l7.9-6.49z"/><path fill="#EA4335" d="M24 48c6.48 0 11.92-2.15 15.89-5.86l-7.04-5.48c-1.96 1.32-4.47 2.11-8.85 2.11-6.38 0-11.79-4.42-13.59-10.41l-7.9 6.49C6.84 42.26 14.82 48 24 48z"/></g></svg>
                 Sign in with Google
               </a>

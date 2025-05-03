@@ -9,25 +9,29 @@ import VerifyEmail from "./VerifyEmail";
 import Toast from './Toast';
 import { useToast } from './useToast';
 import Profile from './Profile';
-import Login from './Login'; // Import Login
+import Login from './Login';
+import { auth } from './firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 
+// Use environment variable for Unsplash API key (Vite style)
+const UNSPLASH_ACCESS_KEY = import.meta.env.VITE_REACT_APP_UNSPLASH_ACCESS_KEY;
+const GEONAMES_USERNAME = import.meta.env.VITE_GEONAMES_USERNAME;
+
+// Define a COUNTRIES array
 const COUNTRIES = [
   { code: 'CA', name: 'Canada' },
   { code: 'US', name: 'United States' },
   { code: 'GB', name: 'United Kingdom' },
   { code: 'FR', name: 'France' },
+  { code: 'DE', name: 'Germany' },
+  { code: 'ES', name: 'Spain' },
   { code: 'IT', name: 'Italy' },
   { code: 'JP', name: 'Japan' },
-  { code: 'ES', name: 'Spain' },
   { code: 'AU', name: 'Australia' },
-  { code: 'DE', name: 'Germany' },
   { code: 'BR', name: 'Brazil' },
-  // Add more as desired
+  { code: 'ZA', name: 'South Africa' },
+  // Add more countries as needed
 ];
-
-// Use environment variable for Unsplash API key (Vite style)
-const UNSPLASH_ACCESS_KEY = import.meta.env.VITE_REACT_APP_UNSPLASH_ACCESS_KEY;
-const GEONAMES_USERNAME = import.meta.env.VITE_GEONAMES_USERNAME;
 
 // Helper to ensure all links open externally
 function externalizeLinks(html) {
@@ -157,13 +161,34 @@ function App() {
   });
   const [country, setCountry] = useState('CA');
   const [destination, setDestination] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [heroImgUrl, setHeroImgUrl] = useState('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80');
+  const [heroImgUrl, setHeroImgUrl] = useState('');
   const [heroImgLoading, setHeroImgLoading] = useState(false);
-  const [user, setUser] = useState(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [toast, showToast, closeToast] = useToast();
+  const [user, setUser] = useState(() => auth.currentUser);
+
+  // Listen for Firebase auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const token = await firebaseUser.getIdToken();
+        setUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+          token,
+        });
+        localStorage.setItem('authToken', token);
+      } else {
+        setUser(null);
+        localStorage.removeItem('authToken');
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Fetch user info on mount or after verification
   useEffect(() => {
@@ -172,7 +197,7 @@ function App() {
       setUser(null);
       return;
     }
-    fetch("http://localhost:8000/api/me/", {
+    fetch("http://127.0.0.1:8000/api/me/", {
       headers: { 'Authorization': `Token ${token}` }
     })
       .then(res => res.ok ? res.json() : null)
@@ -221,7 +246,7 @@ function App() {
     setMapLoaded(false);
     try {
       const token = localStorage.getItem('authToken');
-      const res = await fetch(`http://localhost:8000/api/random-destination/?country=${country}`, {
+      const res = await fetch(`http://127.0.0.1:8000/api/random-destination/?country=${country}`, {
         headers: { 'Authorization': token ? `Token ${token}` : undefined }
       });
       if (!res.ok) throw new Error('Failed to fetch');
@@ -236,7 +261,7 @@ function App() {
 
   // Handler for Google login success
   const handleGoogleLogin = (googleToken) => {
-    fetch('http://localhost:8000/auth/social/login/', {
+    fetch('http://127.0.0.1:8000/auth/social/login/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -258,14 +283,11 @@ function App() {
 
   // Logout handler
   function handleLogout() {
-    fetch('http://localhost:8000/auth/logout/', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' }
-    })
+    signOut(auth)
       .then(() => {
         setUser(null);
         showToast('Logged out successfully!', 'success');
+        navigate('/');
       })
       .catch(() => {
         setUser(null);
@@ -296,7 +318,7 @@ function App() {
             <Login
               onLoginSuccess={token => {
                 localStorage.setItem('authToken', token);
-                fetch("http://localhost:8000/api/me/", { headers: { 'Authorization': `Token ${token}` } })
+                fetch("http://127.0.0.1:8000/api/me/", { headers: { 'Authorization': `Token ${token}` } })
                   .then(res => res.ok ? res.json() : null)
                   .then(data => {
                     if (data && data.username) setUser({ ...data, token });
@@ -373,10 +395,9 @@ function App() {
                   </div>
                 </div>
               ) : (
-                <div style={{ background: "#e0f7fa", padding: 24, borderRadius: 10, maxWidth: 420, margin: "40px auto", boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+                <div style={{ background: "#e0f7fa", padding: 24, borderRadius: 10, maxWidth: 420, margin: "40px auto", boxShadow: "0 2px 12px rgba(0,0,0,0.07)", textAlign: 'center' }}>
                   <h2 style={{ color: "#00796b", marginBottom: 12 }}>Welcome, {user.username}!</h2>
-                  <p style={{ color: "#444" }}>Here are your saved spontaneous locations:</p>
-                  {/* TODO: Render user's saved locations here */}
+                  <p style={{ color: "#444", fontSize: 18, marginTop: 10 }}>We're glad to have you back. Ready to discover your next spontaneous adventure?</p>
                 </div>
               )}
               {/* Controls for Country Selection */}
@@ -398,14 +419,14 @@ function App() {
               </section>
               {/* Hero Card for Country */}
               <section className="hero-card hero-card--with-image">
-                {heroImgLoading ? (
-                  <div className="hero-bg-img hero-bg-img-loading">Loading image...</div>
-                ) : (
+                {heroImgUrl ? (
                   <img
                     className="hero-bg-img"
                     src={heroImgUrl}
                     alt={COUNTRIES.find(c => c.code === country)?.name + ' landscape'}
                   />
+                ) : (
+                  <div className="hero-bg-img hero-bg-img-loading">Loading image...</div>
                 )}
                 {/* Country Flag */}
                 <img
@@ -457,4 +478,4 @@ function App() {
   );
 }
 
-export default App
+export default App;

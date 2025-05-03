@@ -1,5 +1,7 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from rest_framework.authtoken.models import Token
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.utils.decorators import method_decorator
 
 def current_user(request):
     # Token authentication
@@ -16,3 +18,8 @@ def current_user(request):
     if request.user.is_authenticated:
         return JsonResponse({'username': request.user.username, 'email': request.user.email})
     return JsonResponse({'username': None}, status=401)
+
+@ensure_csrf_cookie
+def get_csrf_token(request):
+    """Ensure CSRF cookie is set."""
+    return HttpResponse()

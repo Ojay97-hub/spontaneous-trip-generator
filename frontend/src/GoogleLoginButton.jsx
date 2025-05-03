@@ -13,7 +13,6 @@ export default function GoogleLoginButton({ onLoginSuccess }) {
       onError={() => {
         alert('Google Login Failed');
       }}
-      useOneTap
     />
   );
 }

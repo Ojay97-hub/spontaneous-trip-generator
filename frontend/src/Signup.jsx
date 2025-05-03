@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { auth } from './firebase';
+import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 
 export default function Signup({ onSignupSuccess }) {
   const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
   const [password1, setPassword1] = useState('');
   const [password2, setPassword2] = useState('');
   const [error, setError] = useState('');
@@ -16,17 +17,14 @@ export default function Signup({ onSignupSuccess }) {
       setError("Passwords do not match");
       return;
     }
-    const res = await fetch('http://localhost:8000/auth/registration/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, username, password1, password2 })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setSuccess("Account created! Please check your email to verify.");
-      if (onSignupSuccess) onSignupSuccess();
-    } else {
-      setError(data.detail || data.email || data.username || data.password1 || data.password2 || "Sign up failed");
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password1);
+      await sendEmailVerification(userCredential.user);
+      const token = await userCredential.user.getIdToken();
+      setSuccess("Account created! Verification email sent.");
+      if (onSignupSuccess) onSignupSuccess(token);
+    } catch (error) {
+      setError(error.message);
     }
   };
 
@@ -35,7 +33,6 @@ export default function Signup({ onSignupSuccess }) {
       <h2>Sign Up</h2>
       <form onSubmit={handleSubmit}>
         <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="Email" required style={{ width: "100%", marginBottom: 10 }} />
-        <input value={username} onChange={e => setUsername(e.target.value)} type="text" placeholder="Username" required style={{ width: "100%", marginBottom: 10 }} />
         <input value={password1} onChange={e => setPassword1(e.target.value)} type="password" placeholder="Password" required style={{ width: "100%", marginBottom: 10 }} />
         <input value={password2} onChange={e => setPassword2(e.target.value)} type="password" placeholder="Confirm Password" required style={{ width: "100%", marginBottom: 10 }} />
         <button type="submit" style={{ width: "100%", marginTop: 10 }}>Sign Up</button>
