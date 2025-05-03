@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { Link, useNavigate } from 'react-router-dom';
 
 const dropdownStyles = {
   position: "relative",
@@ -59,6 +60,7 @@ const AccountDropdown = ({ user }) => {
   const [open, setOpen] = useState(false);
   const [hovered, setHovered] = useState(null);
   const dropdownRef = useRef();
+  const navigate = useNavigate();
 
   // Helper for avatar/initials
   const getAvatar = () => {
@@ -134,44 +136,36 @@ const AccountDropdown = ({ user }) => {
                 Hi, {user.username}!
               </div>
               <hr style={dividerStyles} />
-              <a
-                href="http://localhost:8000/accounts/logout/"
-                style={{
-                  ...menuItemStyles,
-                  ...(hovered === "logout" ? menuItemHover : {}),
-                }}
-                onMouseEnter={() => setHovered("logout")}
-                onMouseLeave={() => setHovered(null)}
-              >
-                Sign Out
-              </a>
+              {/* The main logout is now in Navbar, so hide here or call onLogout if you want */}
             </>
           ) : (
             <>
-              <a
-                href="http://localhost:8000/accounts/login/"
+              <Link
+                to="/login"
                 style={{
                   ...menuItemStyles,
                   ...(hovered === "login" ? menuItemHover : {}),
                 }}
                 onMouseEnter={() => setHovered("login")}
                 onMouseLeave={() => setHovered(null)}
+                onClick={() => setOpen(false)}
               >
                 Sign In
-              </a>
-              <a
-                href="http://localhost:8000/accounts/signup/"
+              </Link>
+              <Link
+                to="/signup"
                 style={{
                   ...menuItemStyles,
                   ...(hovered === "signup" ? menuItemHover : {}),
                 }}
                 onMouseEnter={() => setHovered("signup")}
                 onMouseLeave={() => setHovered(null)}
+                onClick={() => setOpen(false)}
               >
                 Sign Up
-              </a>
+              </Link>
               <a
-                href="http://localhost:8000/accounts/google/login/"
+                href="#"
                 style={{
                   ...menuItemStyles,
                   ...(hovered === "google" ? menuItemHover : {}),
@@ -182,6 +176,7 @@ const AccountDropdown = ({ user }) => {
                 }}
                 onMouseEnter={() => setHovered("google")}
                 onMouseLeave={() => setHovered(null)}
+                onClick={e => { e.preventDefault(); setOpen(false); navigate('/login?provider=google'); }}
               >
                 {/* Google G Icon SVG */}
                 <svg width="18" height="18" viewBox="0 0 48 48" style={{ display: 'block' }}><g><path fill="#4285F4" d="M24 9.5c3.54 0 6.46 1.22 8.47 2.81l6.3-6.3C34.7 2.71 29.82 0 24 0 14.82 0 6.84 5.74 2.69 14.09l7.73 6.01C12.21 13.92 17.62 9.5 24 9.5z"/><path fill="#34A853" d="M46.1 24.5c0-1.56-.14-3.07-.4-4.5H24v9h12.39c-.53 2.83-2.13 5.22-4.52 6.84l7.04 5.48C43.87 37.73 46.1 31.62 46.1 24.5z"/><path fill="#FBBC05" d="M10.42 28.1A14.98 14.98 0 0 1 9.5 24c0-1.42.24-2.8.67-4.1l-7.73-6.01A23.93 23.93 0 0 0 0 24c0 3.8.91 7.39 2.52 10.59l7.9-6.49z"/><path fill="#EA4335" d="M24 48c6.48 0 11.92-2.15 15.89-5.86l-7.04-5.48c-1.96 1.32-4.47 2.11-8.85 2.11-6.38 0-11.79-4.42-13.59-10.41l-7.9 6.49C6.84 42.26 14.82 48 24 48z"/></g></svg>

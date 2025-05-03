@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function Signup() {
+export default function Signup({ onSignupSuccess }) {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password1, setPassword1] = useState('');
@@ -24,6 +24,7 @@ export default function Signup() {
     const data = await res.json();
     if (res.ok) {
       setSuccess("Account created! Please check your email to verify.");
+      if (onSignupSuccess) onSignupSuccess();
     } else {
       setError(data.detail || data.email || data.username || data.password1 || data.password2 || "Sign up failed");
     }

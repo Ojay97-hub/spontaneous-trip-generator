@@ -10,6 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -47,7 +51,6 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'trips',
-    # allauth apps
     'django.contrib.sites',
 ]
 
@@ -153,8 +156,14 @@ ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_EMAIL_REQUIRED = True
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'noreply@spontaneoustrip.com'
+# EMAIL CONFIGURATION FOR SENDGRID SMTP
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = 'apikey'  # This is the literal string 'apikey'
+EMAIL_HOST_PASSWORD = os.environ.get('SENDGRID_API_KEY')
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'owenjames97@outlook.com'  # Use a verified SendGrid domain address
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -165,4 +174,17 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+# --- dj-rest-auth: use API-only email confirmation ---
+REST_AUTH_REGISTER_EMAIL_VERIFICATION = 'optional'
+REST_AUTH_REGISTER_VERIFICATION_ENABLED = True
+REST_AUTH_REGISTER_EMAIL_VERIFICATION_URL = 'http://localhost:5173/verify-email'
+
+# Use custom allauth adapter to send frontend confirmation link
+ACCOUNT_ADAPTER = 'backend.custom_adapter.CustomAccountAdapter'
+FRONTEND_URL = 'http://localhost:5173'
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "https://localhost:5173",
+]
+CORS_ALLOW_CREDENTIALS = True
