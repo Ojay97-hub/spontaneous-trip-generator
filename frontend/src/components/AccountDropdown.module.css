@@ -1,0 +1,115 @@
+.dropdownRoot {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdownButton {
+  border: none;
+  background: none;
+  padding: 0;
+  outline: none;
+  cursor: pointer;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  min-width: 180px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  padding: 12px;
+  z-index: 1000;
+  animation: fadeIn 0.2s;
+}
+.menuGradient {
+  background: linear-gradient(135deg, #fca311 60%, #4f46e5 100%);
+  color: #fff;
+  box-shadow: 0 8px 32px rgba(80,80,180,0.18);
+  border: none;
+}
+
+.avatarGradient {
+  background: linear-gradient(135deg, #fca311 60%, #4f46e5 100%);
+  color: #fff;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 20px;
+  border: 2.5px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  transition: box-shadow 0.2s;
+}
+.avatarDefault {
+  background: #fff;
+  border: 1.5px solid #ddd;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  cursor: pointer;
+  font-size: 22px;
+  color: #4f46e5;
+  transition: box-shadow 0.2s;
+}
+
+.menuItem {
+  padding: 10px 16px;
+  border-radius: 6px;
+  color: #222;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+  transition: background 0.15s;
+  background: none;
+}
+.menuItemHover {
+  background: #f3f4f6;
+}
+.menuSignup {
+  color: #fff;
+  background: rgba(255,255,255,0.09);
+  font-weight: 600;
+}
+.dropdownWelcome {
+  background: rgba(255,255,255,0.13);
+  box-shadow: 0 2px 8px #fff1;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+.waveIcon {
+  font-size: 32px;
+  margin-right: 6px;
+  filter: drop-shadow(0 2px 4px #2223);
+}
+.welcomeText {
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.5px;
+  color: #fff;
+  text-shadow: 0 1px 6px #4f46e588;
+}
+.divider {
+  margin: 10px 0;
+  border: 0;
+  border-top: 1.5px solid #fff5;
+  opacity: 0.5;
+}
+.signOutButton {
+  color: #fff;
+  background: rgba(255,255,255,0.09);
+  font-weight: 600;
+  width: 100%;
+  margin-top: 8px;
+}

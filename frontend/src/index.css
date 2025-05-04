@@ -120,6 +120,9 @@ button:hover {
   align-items: stretch;
   margin-bottom: 3.5rem;
   flex-wrap: wrap;
+  max-height: 800px;
+  overflow-y: auto;
+ 
 }
 
 .location-card-modern,
@@ -137,10 +140,12 @@ button:hover {
   overflow: hidden;
   width: 100%;
   box-sizing: border-box;
+
 }
 
 .location-card-modern {
   margin: 0 auto;
+  overflow-y: auto;
 }
 
 .location-img-pill,
@@ -151,11 +156,13 @@ button:hover {
   display: block;
   margin: 0;
 }
+
 .location-img-pill {
   height: 100%;
-  max-height: 330px;
+  max-height: 300px;
   border-radius: 0;
 }
+
 .hero-bg-img {
   height: 100%;
   position: absolute;

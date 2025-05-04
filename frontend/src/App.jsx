@@ -305,7 +305,7 @@ function App() {
                 </div>
               ) : (
                 <div className="cta-welcome">
-                  <h2 className="cta-welcome-title">Welcome, {user.username}!</h2>
+                  <h2 className="cta-welcome-title">Welcome, {user.displayName || user.email || user.username}!</h2>
                   <p className="cta-welcome-desc">We're glad to have you back. Ready to discover your next spontaneous adventure?</p>
                 </div>
               )}
